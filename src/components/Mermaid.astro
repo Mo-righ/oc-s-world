@@ -1,0 +1,125 @@
+---
+/**
+ * Mermaid 关系图组件
+ * —— mermaid 通过 npm 本地打包，不依赖任何 CDN 或第三方接口。
+ * 用法：<Mermaid chart={entry.data.relations} />
+ */
+interface Props {
+  chart: string;
+  title?: string;
+  caption?: string;
+  accent?: string;
+}
+
+const { chart, title, caption, accent = '#00e5ff' } = Astro.props;
+const hasChart = Boolean(chart && chart.trim());
+---
+
+{
+  hasChart && (
+    <figure class="not-prose">
+      {title && (
+        <figcaption class="mb-3 flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-dust-2">
+          <span style={`color:${accent}`}>◈</span>
+          {title}
+        </figcaption>
+      )}
+      <div class="mermaid-wrap corners">
+        <pre class="mermaid">{chart.trim()}</pre>
+      </div>
+      {caption && <p class="mt-2.5 font-mono text-[11px] text-dust-2">{caption}</p>}
+      <noscript>
+        <p class="mt-2 font-mono text-[11px] text-amber">
+          [ 未启用 JavaScript ] 关系图无法渲染，请在下方文字关系列表中查看角色连接。
+        </p>
+      </noscript>
+    </figure>
+  )
+}
+
+<script>
+  import mermaid from 'mermaid';
+
+  const THEME_VARS = {
+    darkMode: true,
+    background: '#08080e',
+    fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    fontSize: '13px',
+    textColor: '#e8ebf7',
+    primaryColor: '#151527',
+    primaryTextColor: '#e8ebf7',
+    primaryBorderColor: '#00e5ff',
+    secondaryColor: '#1d1d33',
+    secondaryTextColor: '#e8ebf7',
+    secondaryBorderColor: '#8b5cf6',
+    tertiaryColor: '#101019',
+    tertiaryTextColor: '#e8ebf7',
+    tertiaryBorderColor: '#ff2e97',
+    mainBkg: '#151527',
+    nodeBorder: '#00e5ff',
+    nodeTextColor: '#e8ebf7',
+    lineColor: '#565684',
+    clusterBkg: '#101019',
+    clusterBorder: '#24243a',
+    titleColor: '#e8ebf7',
+    edgeLabelBackground: '#0a0a0f',
+    // sequenceDiagram
+    actorBkg: '#151527',
+    actorBorder: '#00e5ff',
+    actorTextColor: '#e8ebf7',
+    actorLineColor: '#565684',
+    signalColor: '#e8ebf7',
+    signalTextColor: '#e8ebf7',
+    labelBoxBkgColor: '#151527',
+    labelBoxBorderColor: '#00e5ff',
+    labelTextColor: '#e8ebf7',
+    loopTextColor: '#e8ebf7',
+    noteBkgColor: '#1d1d33',
+    noteBorderColor: '#ff2e97',
+    noteTextColor: '#e8ebf7',
+  };
+
+  let initialized = false;
+
+  function init() {
+    if (initialized) return;
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: 'base',
+      themeVariables: THEME_VARS,
+      flowchart: { curve: 'basis', padding: 12, useMaxWidth: true, htmlLabels: true },
+      sequence: { useMaxWidth: true },
+      er: { useMaxWidth: true },
+    });
+    initialized = true;
+  }
+
+  async function render() {
+    const nodes = Array.from(
+      document.querySelectorAll<HTMLElement>('.mermaid:not([data-processed])')
+    );
+    if (!nodes.length) return;
+    init();
+    try {
+      await mermaid.run({ nodes });
+    } catch (err) {
+      nodes.forEach((n) => {
+        n.setAttribute('data-processed', 'true');
+        n.style.visibility = 'visible';
+      });
+      // eslint-disable-next-line no-console
+      console.error('[mermaid] 渲染失败：', err);
+    }
+    nodes.forEach((n) => (n.style.visibility = 'visible'));
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render, { once: true });
+  } else {
+    void render();
+  }
+
+  // 兼容 Astro 视图切换 / 前进后退，确保新插入的图表也会被渲染
+  document.addEventListener('astro:page-load', () => void render());
+</script>

@@ -1,0 +1,24 @@
+---
+interface Props {
+  title: string;
+  en?: string;
+  desc?: string;
+  icon?: string;
+  accent?: string;
+  id?: string;
+}
+
+const { title, en, desc, icon = '▸', accent = '#00e5ff', id } = Astro.props;
+---
+
+<section id={id} class="mt-14 first:mt-0 scroll-mt-24" style={`--accent:${accent}`}>
+  <div class="mb-5 flex items-start justify-between gap-6 border-b border-edge pb-3">
+    <div class="flex items-baseline gap-3">
+      <span class="neon-text font-mono text-sm">{icon}</span>
+      <h2 class="text-xl font-bold tracking-tight text-ink">{title}</h2>
+      {en && <span class="hidden font-mono text-[11px] tracking-[0.24em] text-dust-2 sm:inline">{en}</span>}
+    </div>
+  </div>
+  {desc && <p class="-mt-2 mb-6 text-sm leading-relaxed text-dust">{desc}</p>}
+  <slot />
+</section>

@@ -1,0 +1,37 @@
+---
+import { url, SITE_TITLE, SITE_TITLE_EN, SITE_AUTHOR } from '../lib/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-auto border-t border-edge/70 bg-void-2/50">
+  <div class="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8">
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="font-mono text-[10px] tracking-[0.28em] text-dust-2">{SITE_TITLE_EN}</p>
+        <p class="mt-1.5 text-sm text-dust">
+          {SITE_TITLE} · 原创世界观设定集
+        </p>
+        <p class="mt-1 font-mono text-[11px] text-dust-2">
+          静态站点由 Astro + Tailwind CSS 构建 · 数据全部来自本地 Markdown
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[11px] text-dust-2">
+        <a class="transition-colors hover:text-neon" href={url('/characters')}>人物</a>
+        <a class="transition-colors hover:text-neon" href={url('/settings')}>设定</a>
+        <a class="transition-colors hover:text-neon" href={url('/factions')}>势力</a>
+      </div>
+    </div>
+
+    <div
+      class="mt-8 flex flex-col gap-2 border-t border-edge/60 pt-5 font-mono text-[11px] text-dust-2 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <span>© {year} {SITE_AUTHOR} · All original settings reserved.</span>
+      <span class="flex items-center gap-2">
+        <i class="pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-neon"></i>
+        SYSTEM ONLINE
+      </span>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,112 @@
+---
+import { url, isActive, SITE_TITLE, SITE_TITLE_EN } from '../lib/site';
+
+const items = [
+  { href: '/', label: '首页', en: 'INDEX' },
+  { href: '/characters', label: '人物', en: 'DRAMATIS' },
+  { href: '/settings', label: '设定', en: 'CODEX' },
+  { href: '/factions', label: '势力', en: 'FACTIONS' },
+];
+
+const current = Astro.url.pathname;
+---
+
+<header
+  class="sticky top-0 z-50 border-b border-edge/80 bg-void/80 backdrop-blur-md supports-[backdrop-filter]:bg-void/60"
+>
+  <nav class="mx-auto flex w-full max-w-6xl items-center gap-4 px-5 py-3 sm:px-8">
+    <a href={url('/')} class="group flex items-center gap-2.5 shrink-0">
+      <span
+        class="grid h-8 w-8 place-items-center rounded border border-neon/50 bg-neon/10 font-mono text-[13px] text-neon shadow-[0_0_18px_-4px_var(--color-neon)]"
+        >◎</span
+      >
+      <span class="flex flex-col leading-none">
+        <span class="text-[15px] font-semibold tracking-wide">{SITE_TITLE}</span>
+        <span class="mt-0.5 font-mono text-[9px] tracking-[0.22em] text-dust-2">
+          {SITE_TITLE_EN}
+        </span>
+      </span>
+    </a>
+
+    <span class="hidden flex-1 sm:block"></span>
+
+    <!-- 桌面导航 -->
+    <ul class="ml-auto hidden items-center gap-1 sm:flex">
+      {
+        items.map((it) => {
+          const active = isActive(current, it.href);
+          return (
+            <li>
+              <a
+                href={url(it.href)}
+                aria-current={active ? 'page' : undefined}
+                class:list={[
+                  'group relative block rounded px-3 py-1.5 font-mono text-[12.5px] tracking-wider transition-colors',
+                  active ? 'text-neon' : 'text-dust hover:text-ink',
+                ]}
+              >
+                {it.label}
+                <span class="ml-1.5 text-[9px] text-dust-2 group-hover:text-dust">{it.en}</span>
+                <span
+                  class:list={[
+                    'pointer-events-none absolute inset-x-2 -bottom-px h-px bg-neon transition-transform duration-300',
+                    active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
+                  ]}
+                  style="box-shadow:0 0 10px var(--color-neon)"
+                />
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    <!-- 移动端菜单按钮 -->
+    <button
+      id="oc-nav-toggle"
+      type="button"
+      class="ml-auto grid h-9 w-9 place-items-center rounded border border-edge text-dust transition-colors hover:border-neon hover:text-neon sm:hidden"
+      aria-controls="oc-nav-mobile"
+      aria-expanded="false"
+      aria-label="打开导航菜单"
+    >
+      <span class="block h-px w-4 bg-current shadow-[0_-5px_0_currentColor,0_5px_0_currentColor]"></span>
+    </button>
+  </nav>
+
+  <!-- 移动端下拉 -->
+  <ul id="oc-nav-mobile" class="hidden border-t border-edge bg-void-2/95 px-5 py-2 sm:hidden">
+    {
+      items.map((it) => {
+        const active = isActive(current, it.href);
+        return (
+          <li>
+            <a
+              href={url(it.href)}
+              aria-current={active ? 'page' : undefined}
+              class:list={[
+                'flex items-center justify-between border-b border-edge/60 py-3 font-mono text-sm last:border-0',
+                active ? 'text-neon' : 'text-dust',
+              ]}
+            >
+              <span>{it.label}</span>
+              <span class="text-[10px] tracking-[0.2em] text-dust-2">{it.en}</span>
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</header>
+
+<script>
+  const btn = document.getElementById('oc-nav-toggle');
+  const menu = document.getElementById('oc-nav-mobile');
+  if (btn && menu) {
+    btn.addEventListener('click', () => {
+      const open = menu.classList.toggle('hidden') === false;
+      btn.setAttribute('aria-expanded', String(open));
+      btn.setAttribute('aria-label', open ? '关闭导航菜单' : '打开导航菜单');
+    });
+  }
+</script>

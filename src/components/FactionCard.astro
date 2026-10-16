@@ -1,0 +1,97 @@
+---
+import { url } from '../lib/site';
+
+interface Props {
+  id: string;
+  name: string;
+  enName?: string;
+  type?: string;
+  emblem?: string;
+  accent?: string;
+  motto?: string;
+  leader?: string;
+  headquarters?: string;
+  influence?: string;
+  tags?: string[];
+  summary: string;
+  memberCount?: number;
+}
+
+const {
+  id,
+  name,
+  enName,
+  type = '组织',
+  emblem = '◆',
+  accent = '#ff2e97',
+  motto,
+  leader,
+  headquarters,
+  influence,
+  tags = [],
+  summary,
+  memberCount = 0,
+} = Astro.props;
+---
+
+<a
+  href={url(`/factions/${id}`)}
+  class="panel corners hoverable group flex flex-col overflow-hidden"
+  style={`--accent:${accent}`}
+>
+  <!-- 顶部色带 -->
+  <div
+    class="flex items-center gap-3 border-b border-edge/70 px-5 py-4"
+    style={`background:linear-gradient(100deg, ${accent}1f, transparent 65%)`}
+  >
+    <span
+      class="grid h-11 w-11 shrink-0 place-items-center rounded-md border text-xl"
+      style={`border-color:${accent}55;color:${accent};background:#0e0e18`}>{emblem}</span
+    >
+    <div class="min-w-0">
+      <h3 class="truncate text-[17px] font-bold text-ink transition-colors group-hover:text-[var(--accent)]">
+        {name}
+      </h3>
+      <p class="truncate font-mono text-[10px] tracking-[0.18em] text-dust-2">
+        {enName ?? type}
+      </p>
+    </div>
+    <span class="chip ml-auto shrink-0" style={`color:${accent};border-color:${accent}44`}>{type}</span>
+  </div>
+
+  <div class="flex flex-1 flex-col px-5 py-4">
+    {motto && <p class="mb-3 border-l-2 pl-3 text-[13px] italic text-dust" style={`border-color:${accent}66`}>「{motto}」</p>}
+    <p class="line-clamp-4 text-[13.5px] leading-relaxed text-dust">{summary}</p>
+
+    <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-edge/70 pt-3 font-mono text-[11px]">
+      <div class="min-w-0">
+        <dt class="text-dust-2">LEADER</dt>
+        <dd class="truncate text-ink/90">{leader ?? '—'}</dd>
+      </div>
+      <div class="min-w-0">
+        <dt class="text-dust-2">BASE</dt>
+        <dd class="truncate text-ink/90">{headquarters ?? '—'}</dd>
+      </div>
+      <div class="min-w-0">
+        <dt class="text-dust-2">INFLUENCE</dt>
+        <dd class="truncate text-ink/90">{influence ?? '—'}</dd>
+      </div>
+      <div class="min-w-0">
+        <dt class="text-dust-2">MEMBERS</dt>
+        <dd class="truncate text-ink/90">{memberCount > 0 ? `${memberCount} 位已登记` : '—'}</dd>
+      </div>
+    </dl>
+
+    <div class="mt-4 flex flex-wrap gap-1.5">
+      {tags.slice(0, 4).map((t) => <span class="chip">{t}</span>)}
+    </div>
+
+    <div class="mt-auto flex items-center justify-end pt-4">
+      <span
+        class="font-mono text-[11px] text-dust-2 transition-all duration-300 group-hover:translate-x-1 group-hover:text-[var(--accent)]"
+      >
+        查阅档案 →
+      </span>
+    </div>
+  </div>
+</a>

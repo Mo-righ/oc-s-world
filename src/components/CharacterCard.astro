@@ -1,0 +1,78 @@
+---
+import { url } from '../lib/site';
+
+interface Props {
+  id: string;
+  name: string;
+  enName?: string;
+  alias?: string;
+  title: string;
+  factionLabel?: string;
+  status?: string;
+  avatar?: string;
+  accent?: string;
+  tags?: string[];
+  summary: string;
+}
+
+const {
+  id,
+  name,
+  enName,
+  alias,
+  title,
+  factionLabel,
+  status,
+  avatar = '🜲',
+  accent = '#00e5ff',
+  tags = [],
+  summary,
+} = Astro.props;
+
+// avatar 既可以是 emoji，也可以是 public/ 下的图片路径（含扩展名时按图片渲染）
+const avatarIsImg = /\.(png|jpe?g|webp|svg|gif|avif)$/i.test(avatar ?? '');
+---
+
+<a
+  href={url(`/characters/${id}`)}
+  class="panel corners hoverable group flex flex-col overflow-hidden p-5"
+  style={`--accent:${accent}`}
+>
+  <div class="flex items-start gap-4">
+    <div
+      class="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg border text-3xl"
+      style={`border-color:${accent}40;background:radial-gradient(circle at 30% 20%, ${accent}22, transparent 70%), #0e0e18`}
+    >
+      {avatarIsImg ? <img src={url(avatar)} alt={name} class="h-full w-full object-cover" /> : avatar}
+    </div>
+
+    <div class="min-w-0 flex-1">
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <h3 class="text-lg font-bold leading-tight text-ink transition-colors group-hover:text-[var(--accent)]">
+          {name}
+        </h3>
+        {alias && <span class="chip" style={`color:${accent};border-color:${accent}44`}>{alias}</span>}
+      </div>
+      {enName && <p class="mt-0.5 font-mono text-[10px] tracking-[0.2em] text-dust-2">{enName}</p>}
+      <p class="mt-1.5 text-[13px] leading-snug text-dust">{title}</p>
+    </div>
+  </div>
+
+  <p class="mt-4 line-clamp-3 text-[13.5px] leading-relaxed text-dust">{summary}</p>
+
+  <div class="mt-4 flex flex-wrap items-center gap-1.5">
+    {factionLabel && <span class="chip" style={`color:${accent};border-color:${accent}44`}>{factionLabel}</span>}
+    {tags.slice(0, 3).map((t) => <span class="chip">{t}</span>)}
+  </div>
+
+  <div class="mt-5 flex items-center justify-between border-t border-edge/70 pt-3">
+    <span class="font-mono text-[10px] tracking-[0.18em] text-dust-2">
+      {status ?? 'STATUS · UNKNOWN'}
+    </span>
+    <span
+      class="font-mono text-[11px] text-dust-2 transition-all duration-300 group-hover:translate-x-1 group-hover:text-[var(--accent)]"
+    >
+      READ →
+    </span>
+  </div>
+</a>

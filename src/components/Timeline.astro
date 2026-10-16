@@ -1,0 +1,61 @@
+---
+/**
+ * 垂直时间轴组件
+ * items: { time, title, desc?, tag?, accent? }
+ */
+export interface TimelineItem {
+  time: string;
+  title: string;
+  desc?: string;
+  tag?: string;
+  accent?: string;
+}
+
+interface Props {
+  items: TimelineItem[];
+  accent?: string;
+}
+
+const { items, accent = '#00e5ff' } = Astro.props;
+---
+
+<ol class="relative m-0 list-none p-0">
+  {
+    items.map((it, i) => {
+      const c = it.accent ?? accent;
+      return (
+        <li class="tl-item relative pl-11 pb-8 last:pb-0 sm:pl-16" style={`--tl:${c}`}>
+          {/* 连接线 */}
+          <span
+            class="tl-line absolute left-[9px] top-4 bottom-0 w-px sm:left-[15px]"
+            style="background:linear-gradient(180deg, color-mix(in srgb, var(--tl) 55%, transparent), rgba(36,36,58,.35))"
+            aria-hidden="true"
+          />
+
+          {/* 节点 */}
+          <span
+            class="absolute left-0 top-1.5 grid h-[19px] w-[19px] place-items-center rounded-full border bg-void sm:left-[6px]"
+            style={`border-color:${c};box-shadow:0 0 0 3px rgba(10,10,15,1), 0 0 16px -2px ${c}`}
+            aria-hidden="true"
+          >
+            <i class="h-[5px] w-[5px] rounded-full" style={`background:${c}`} />
+          </span>
+
+          <div class="panel corners px-4 py-3.5 sm:px-5 sm:py-4" style={`--accent:${c}`}>
+            <div class="flex flex-wrap items-center gap-2.5">
+              <time
+                class="font-mono text-[11px] tracking-[0.12em]"
+                style={`color:${c}`}
+              >
+                {it.time}
+              </time>
+              {it.tag && <span class="chip">{it.tag}</span>}
+            </div>
+            <h3 class="mt-1.5 text-[15px] font-semibold text-ink">{it.title}</h3>
+            {it.desc && <p class="mt-1 text-[13.5px] leading-relaxed text-dust">{it.desc}</p>}
+          </div>
+        </li>
+      );
+    })
+  }
+</ol>
