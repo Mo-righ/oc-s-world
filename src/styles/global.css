@@ -35,6 +35,23 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* 移动端：任何内容都不得撑破视口 */
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* 网格 / flex 子项默认 min-width:auto 会被长内容撑开，统一放开收缩 */
+.grid > *,
+.flex > * {
+  min-width: 0;
+}
+
+/* 长英文串（路径、URL、代码）在窄屏允许断行 */
+@supports (overflow-wrap: anywhere) {
+  .prose-oc,
+  .panel {
+    overflow-wrap: anywhere;
+  }
 }
 
 body {
@@ -312,6 +329,11 @@ body::after {
   border-radius: 0.75rem;
   padding: 1rem;
   overflow-x: auto;
+  max-width: 100%;
+}
+.mermaid {
+  max-width: 100%;
+  margin: 0;
 }
 .mermaid-wrap svg {
   max-width: 100%;
