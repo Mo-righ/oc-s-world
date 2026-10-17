@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       # 有 package-lock.json 时用 npm ci（更快更稳），没有则退回 npm install
       - name: Install dependencies
