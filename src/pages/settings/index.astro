@@ -1,0 +1,129 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import LocationCard from '../../components/LocationCard.astro';
+import LoreCard from '../../components/LoreCard.astro';
+import Timeline from '../../components/Timeline.astro';
+import { byOrder } from '../../lib/site';
+
+const locations = (await getCollection('locations')).sort(byOrder);
+const lore = (await getCollection('lore')).sort(byOrder);
+const events = (await getCollection('timeline')).sort(byOrder);
+
+const tabs = [
+  { href: '#geography', label: '地理', en: 'GEO' },
+  { href: '#history', label: '历史', en: 'HISTORY' },
+  { href: '#systems', label: '体系', en: 'SYSTEMS' },
+];
+---
+
+<BaseLayout
+  title="设定总览"
+  description="星陨纪界的地理、编年史与技术体系。"
+  kicker="CODEX / 设定档案"
+  accent="#8b5cf6"
+>
+  <header class="rise">
+    <h1 class="text-3xl font-black tracking-tight text-ink sm:text-4xl">设定总览</h1>
+    <p class="mt-3 max-w-2xl text-[14.5px] leading-relaxed text-dust">
+      这个世界有三根支柱：<strong class="font-semibold text-neon">一片被灰烬重新划过的地图</strong>、<strong
+        class="font-semibold text-amber">一条从太阳开始的编年史</strong
+      >，以及<strong class="font-semibold text-acid">一套让科学和神秘学互相顶住的体系</strong>。
+    </p>
+
+    <nav class="mt-6 flex flex-wrap gap-2" aria-label="设定分类">
+      {
+        tabs.map((t) => (
+          <a href={t.href} class="btn">
+            {t.label}
+            <span class="text-[9px] text-dust-2">{t.en}</span>
+          </a>
+        ))
+      }
+    </nav>
+  </header>
+
+  <!-- ==================== 地理 ==================== -->
+  <SectionHeading
+    title="地理"
+    en="GEOGRAPHY"
+    icon="◈"
+    accent="#8b5cf6"
+    desc="灾后的地图不再由国界划分，而是由「谁能守住一片淡水」划分。"
+    id="geography"
+  >
+    <div class="grid gap-4 sm:grid-cols-2">
+      {
+        locations.map((l) => (
+          <LocationCard
+            id={l.id}
+            name={l.data.name}
+            enName={l.data.enName}
+            type={l.data.type}
+            region={l.data.region}
+            danger={l.data.danger}
+            icon={l.data.icon}
+            accent={l.data.accent}
+            tags={l.data.tags}
+            summary={l.data.summary}
+          />
+        ))
+      }
+    </div>
+    {
+      locations.length === 0 && (
+        <p class="font-mono text-[12px] text-dust-2">
+          还没有地点。在 src/content/locations/ 里新建 .md 即可。
+        </p>
+      )
+    }
+  </SectionHeading>
+
+  <!-- ==================== 历史 ==================== -->
+  <SectionHeading
+    title="历史"
+    en="CHRONICLE"
+    icon="⌛"
+    accent="#ffb020"
+    desc="从 2026 年 5 月 26 日那颗小行星被捕获开始，到「科学≈神秘学」的今天。"
+    id="history"
+  >
+    <Timeline
+      items={events.map((e) => ({
+        time: e.data.date,
+        title: e.data.title,
+        desc: e.data.summary,
+        tag: e.data.tag,
+        accent: e.data.accent,
+      }))}
+    />
+  </SectionHeading>
+
+  <!-- ==================== 体系 ==================== -->
+  <SectionHeading
+    title="体系"
+    en="SYSTEMS"
+    icon="⚙"
+    accent="#b6ff3c"
+    desc="污染是起因，异能是代价，异能科技是人类为了不付这个代价而造出来的东西。"
+    id="systems"
+  >
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        lore.map((l) => (
+          <LoreCard
+            id={l.id}
+            name={l.data.name}
+            enName={l.data.enName}
+            category={l.data.category}
+            icon={l.data.icon}
+            accent={l.data.accent}
+            tags={l.data.tags}
+            summary={l.data.summary}
+          />
+        ))
+      }
+    </div>
+  </SectionHeading>
+</BaseLayout>

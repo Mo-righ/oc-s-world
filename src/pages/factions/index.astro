@@ -1,0 +1,53 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FactionCard from '../../components/FactionCard.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import { byOrder } from '../../lib/site';
+
+const factions = (await getCollection('factions')).sort(byOrder);
+const characters = await getCollection('characters');
+
+const countOf = (factionId: string) => characters.filter((c) => c.data.faction === factionId).length;
+---
+
+<BaseLayout
+  title="势力格局"
+  description="星陨纪界中的组织与势力：从 UOSC 的会议室到贝加尔湖畔的营地，七方势力各有各的算盘。"
+  kicker="FACTIONS & ORGANIZATIONS"
+  accent="#ff2e97"
+>
+  <header class="rise">
+    <h1 class="text-3xl font-black tracking-tight text-ink sm:text-4xl">势力格局</h1>
+    <p class="mt-3 max-w-2xl text-[14.5px] leading-relaxed text-dust">
+      灾后没有赢家，只有不同程度的幸存者。有人想恢复旧秩序，有人想换掉人类本身，还有人只想把下个月的账做平。
+    </p>
+    <p class="mt-2 font-mono text-[11px] text-dust-2">
+      共 <span class="text-plasma">{factions.length}</span> 个已登记组织
+    </p>
+  </header>
+
+  <SectionHeading title="组织名录" en="REGISTRY" icon="⬢" accent="#ff2e97" id="registry">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {
+        factions.map((f) => (
+          <FactionCard
+            id={f.id}
+            name={f.data.name}
+            enName={f.data.enName}
+            type={f.data.type}
+            emblem={f.data.emblem}
+            accent={f.data.accent}
+            motto={f.data.motto}
+            leader={f.data.leader}
+            headquarters={f.data.headquarters}
+            influence={f.data.influence}
+            tags={f.data.tags}
+            summary={f.data.summary}
+            memberCount={countOf(f.id)}
+          />
+        ))
+      }
+    </div>
+  </SectionHeading>
+</BaseLayout>

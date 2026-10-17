@@ -1,0 +1,49 @@
+name: Deploy to GitHub Pages
+
+on:
+  # 推送到 main 分支即触发
+  push:
+    branches: [main]
+  # 也可以在 Actions 页面手动点一下重新部署
+  workflow_dispatch:
+
+# 允许 GITHUB_TOKEN 向 gh-pages 分支推送内容
+permissions:
+  contents: write
+
+# 同一时间只跑一个部署，避免两次推送互相覆盖
+concurrency:
+  group: deploy-gh-pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # 有 lock 文件时用 ci（更快更稳）；lock 缺失或与 package.json 不一致时自动退回 install
+      - name: Install dependencies
+        run: npm ci || npm install --no-audit --no-fund
+
+      - name: Build site
+        run: npm run build
+
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: 'deploy: ${{ github.event.head_commit.message || ''manual run'' }}'
+          # 保留 .nojekyll，避免 GitHub Pages 用 Jekyll 处理静态资源
+          enable_jekyll: false

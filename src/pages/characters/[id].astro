@@ -1,0 +1,201 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import Mermaid from '../../components/Mermaid.astro';
+import Timeline from '../../components/Timeline.astro';
+import { byOrder, url } from '../../lib/site';
+
+export const getStaticPaths = (async () => {
+  const characters = await getCollection('characters');
+  return characters.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+const faction = d.faction ? await getEntry('factions', d.faction) : undefined;
+
+const allLocations = await getCollection('locations');
+const relatedLocations = allLocations.filter((l) => d.locations.includes(l.id));
+
+const metaRows = [
+  { k: '年龄', v: d.age },
+  { k: '性别', v: d.gender },
+  { k: '状态', v: d.status },
+  { k: '所属', v: faction?.data.name ?? d.factionLabel },
+].filter((r) => Boolean(r.v));
+---
+
+<BaseLayout title={d.name} description={d.summary} kicker={d.enName ?? 'CHARACTER FILE'} accent={d.accent}>
+  {
+    d.sample && (
+      <div
+        class="mb-8 flex items-start gap-3 rounded-lg border px-4 py-3"
+        style="border-color:#ffb02055;background:#ffb0200f"
+      >
+        <span class="mt-0.5 font-mono text-sm text-amber">!</span>
+        <p class="text-[13px] leading-relaxed text-dust">
+          <span class="font-semibold text-amber">这是示例条目。</span>
+          它只用来演示排版，不是你世界观里的角色。复制
+          <code class="text-neon">src/content/characters/{entry.id}.md</code>
+          改写即可；不需要时直接删除该文件。
+        </p>
+      </div>
+    )
+  }
+
+  <!-- ============ 头部 ============ -->
+  <header class="rise flex flex-col gap-5 sm:flex-row sm:items-start" style={`--accent:${d.accent}`}>
+    <div
+      class="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-xl border text-5xl"
+      style={`border-color:${d.accent}44;background:radial-gradient(circle at 30% 20%, ${d.accent}26, transparent 70%), #0e0e18;box-shadow:0 0 40px -18px ${d.accent}`}
+    >
+      {/\.(png|jpe?g|webp|svg|gif|avif)$/i.test(d.avatar) ? (
+        <img src={url(d.avatar)} alt={d.name} class="h-full w-full object-cover" />
+      ) : (
+        d.avatar
+      )}
+    </div>
+
+    <div class="min-w-0 flex-1">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h1 class="text-3xl font-black tracking-tight text-ink sm:text-4xl">{d.name}</h1>
+        {d.alias && <span class="chip" style={`color:${d.accent};border-color:${d.accent}55`}>{d.alias}</span>}
+        {d.status && <span class="chip">{d.status}</span>}
+      </div>
+      {d.enName && <p class="mt-1 font-mono text-[11px] tracking-[0.28em] text-dust-2">{d.enName}</p>}
+      <p class="mt-2.5 text-[15px] leading-relaxed text-dust">{d.title}</p>
+
+      {
+        faction && (
+          <a
+            href={url(`/factions/${faction.id}`)}
+            class="mt-3 inline-flex items-center gap-2 font-mono text-[12px] transition-opacity hover:opacity-80"
+            style={`color:${faction.data.accent}`}
+          >
+            <span>{faction.data.emblem}</span>
+            <span>{faction.data.name}</span>
+            <span class="text-dust-2">↗</span>
+          </a>
+        )
+      }
+    </div>
+  </header>
+
+  <!-- ============ 台词 ============ -->
+  {
+    d.quote && (
+      <blockquote
+        class="mt-8 border-l-2 py-1 pl-4 text-[15px] italic leading-relaxed text-dust"
+        style={`border-color:${d.accent}`}
+      >
+        「{d.quote}」
+      </blockquote>
+    )
+  }
+
+  <!-- ============ 基础信息 ============ -->
+  {
+    metaRows.length > 0 && (
+      <dl
+        class="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-edge bg-edge/60 sm:grid-cols-4"
+      >
+        {metaRows.map((r) => (
+          <div class="bg-panel px-4 py-3">
+            <dt class="font-mono text-[10px] tracking-[0.2em] text-dust-2">{r.k}</dt>
+            <dd class="mt-1 truncate text-[13.5px] text-ink">{r.v}</dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
+
+  <!-- ============ 正文 ============ -->
+  <div class="prose-oc mt-10">
+    <Content />
+  </div>
+
+  <!-- ============ 关系图 ============ -->
+  {
+    d.relations && (
+      <SectionHeading title="关系网络" en="RELATIONS" icon="⟠" accent={d.accent} id="relations">
+        <Mermaid chart={d.relations} accent={d.accent} />
+      </SectionHeading>
+    )
+  }
+
+  <!-- ============ 盟友 / 对手 ============ -->
+  {
+    (d.allies.length > 0 || d.rivals.length > 0) && (
+      <SectionHeading title="立场" en="ALLEGIANCE" icon="⇄" accent={d.accent} id="allegiance">
+        <div class="grid gap-4 sm:grid-cols-2">
+          {d.allies.length > 0 && (
+            <div class="panel px-4 py-3.5">
+              <p class="font-mono text-[10px] tracking-[0.2em] text-dust-2">ALLY / 盟友</p>
+              <ul class="mt-2 flex flex-wrap gap-1.5">
+                {d.allies.map((a) => (
+                  <li class="chip" style="color:#b6ff3c;border-color:#b6ff3c44">{a}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {d.rivals.length > 0 && (
+            <div class="panel px-4 py-3.5">
+              <p class="font-mono text-[10px] tracking-[0.2em] text-dust-2">RIVAL / 对手</p>
+              <ul class="mt-2 flex flex-wrap gap-1.5">
+                {d.rivals.map((a) => (
+                  <li class="chip" style="color:#ff4d5e;border-color:#ff4d5e44">{a}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </SectionHeading>
+    )
+  }
+
+  <!-- ============ 经历 ============ -->
+  {
+    d.events.length > 0 && (
+      <SectionHeading title="关键经历" en="TIMELINE" icon="⌛" accent={d.accent} id="timeline">
+        <Timeline
+          items={d.events.map((e) => ({
+            time: e.time,
+            title: e.title,
+            desc: e.desc,
+            accent: d.accent,
+          }))}
+        />
+      </SectionHeading>
+    )
+  }
+
+  <!-- ============ 关联地点 ============ -->
+  {
+    relatedLocations.length > 0 && (
+      <SectionHeading title="活动地点" en="LOCATIONS" icon="◈" accent={d.accent} id="locations">
+        <div class="flex flex-wrap gap-2.5">
+          {relatedLocations.map((l) => (
+            <a
+              href={url(`/settings/locations/${l.id}`)}
+              class="panel hoverable px-3.5 py-2.5 text-[13.5px] text-ink"
+              style={`--accent:${l.data.accent}`}
+            >
+              <span class="mr-2 font-mono" style={`color:${l.data.accent}`}>{l.data.icon}</span>
+              {l.data.name}
+            </a>
+          ))}
+        </div>
+      </SectionHeading>
+    )
+  }
+
+  <!-- ============ 返回 ============ -->
+  <div class="mt-14 flex flex-wrap gap-3 border-t border-edge pt-6">
+    <a href={url('/characters')} class="btn">← 返回名册</a>
+    {faction && <a href={url(`/factions/${faction.id}`)} class="btn">查看所属势力</a>}
+  </div>
+</BaseLayout>

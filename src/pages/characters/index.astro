@@ -1,0 +1,86 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import CharacterCard from '../../components/CharacterCard.astro';
+import Mermaid from '../../components/Mermaid.astro';
+import { byOrder } from '../../lib/site';
+
+const characters = (await getCollection('characters')).sort(byOrder);
+
+const graphEntry = await getEntry('pages', 'character-graph');
+let GraphContent: any = null;
+if (graphEntry) {
+  const r = await render(graphEntry);
+  GraphContent = r.Content;
+}
+---
+
+<BaseLayout
+  title="人物档案"
+  description="星陨纪界的人物档案：异能者、普通人，以及那些已经不太能算作人的存在。"
+  kicker="DRAMATIS PERSONAE"
+  accent="#00e5ff"
+>
+  <header class="rise">
+    <h1 class="text-3xl font-black tracking-tight text-ink sm:text-4xl">人物档案</h1>
+    <p class="mt-3 max-w-2xl text-[14.5px] leading-relaxed text-dust">
+      灾后的世界里，人的分类方式变得很直接：对污染敏感、较为敏感，还是不敏感。下面这些人，大多属于第二类。
+    </p>
+    <p class="mt-2 font-mono text-[11px] text-dust-2">
+      共 <span class="text-neon">{characters.length}</span> 条已登记记录
+    </p>
+  </header>
+
+  <SectionHeading title="登记名册" en="ROSTER" icon="◉" accent="#00e5ff" id="roster">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        characters.map((c) => (
+          <CharacterCard
+            id={c.id}
+            name={c.data.name}
+            enName={c.data.enName}
+            alias={c.data.alias}
+            title={c.data.title}
+            factionLabel={c.data.factionLabel}
+            status={c.data.status}
+            avatar={c.data.avatar}
+            accent={c.data.accent}
+            tags={c.data.tags}
+            summary={c.data.summary}
+          />
+        ))
+      }
+    </div>
+    {
+      characters.length === 0 && (
+        <div class="panel px-5 py-10 text-center">
+          <p class="font-mono text-sm text-dust">NO RECORDS</p>
+          <p class="mt-2 text-[13.5px] text-dust-2">
+            还没有角色。在 <code class="text-neon">src/content/characters/</code> 里新建一个 .md 文件即可。
+          </p>
+        </div>
+      )
+    }
+  </SectionHeading>
+
+  {
+    graphEntry && (
+      <SectionHeading
+        title="人物关系总图"
+        en="RELATION MAP"
+        icon="⟠"
+        accent="#8b5cf6"
+        desc="连线的粗细代表关系的强度，虚线代表非正式或已经变质的关系。"
+        id="relations"
+      >
+        <Mermaid chart={graphEntry.data.graph ?? ''} accent="#8b5cf6" />
+        {GraphContent && (
+          <div class="prose-oc mt-8">
+            <GraphContent />
+          </div>
+        )}
+      </SectionHeading>
+    )
+  }
+</BaseLayout>

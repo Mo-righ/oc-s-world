@@ -45,6 +45,8 @@ const characters = defineCollection({
     events: z.array(eventSchema).default([]),
     /** 关联地点 id */
     locations: z.array(z.string()).default([]),
+    /** 标记为示例条目：详情页会显示「这是模板」的提示条 */
+    sample: z.boolean().default(false),
     order: z.number().default(999),
     featured: z.boolean().default(false),
   }),
@@ -69,8 +71,6 @@ const factions = defineCollection({
     status: z.string().optional(),
     tags: z.array(z.string()).default([]),
     summary: z.string(),
-    /** 关联人物 id */
-    members: z.array(z.string()).default([]),
     relations: z.string().optional(),
     events: z.array(eventSchema).default([]),
     order: z.number().default(999),
@@ -131,15 +131,15 @@ const lore = defineCollection({
 const timeline = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/timeline' }),
   schema: z.object({
-    /** 显示用的纪年文本 */
+    /** 页面上显示的纪年文本，随便写，例如「2026.05.26」「灾后第 3 年」 */
     date: z.string(),
-    /** 用于排序的数值化纪年（旧历用负数） */
-    year: z.number(),
-    era: z.string().default('新历'),
+    era: z.string().default('陨星纪'),
     title: z.string(),
+    /** 事件分类标签，例如「天灾」「政治」「科技」 */
     tag: z.string().default('事件'),
     accent: z.string().default('#00e5ff'),
     summary: z.string(),
+    /** 排序用：数字越小越靠前。留 10 的倍数，方便以后插事件 */
     order: z.number().default(999),
   }),
 });

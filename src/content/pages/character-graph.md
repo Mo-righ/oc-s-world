@@ -2,53 +2,54 @@
 title: 人物关系总图
 subtitle: RELATION MAP
 kicker: DRAMATIS PERSONAE · 连线即立场
-description: 回响之环中已登记人物的立场、羁绊与敌对关系。
+description: 星陨纪界中已登记人物的立场、羁绊与敌对关系。新增角色后，在这里补一行连线即可更新全图。
 accent: '#00e5ff'
 graph: |
   graph LR
-    QZ["祁昭<br/>灰雀"]
-    RV["雷恩·瓦尔<br/>铁律"]
-    NZ["南栀<br/>噪声"]
-    CA["枢机议会"]
-    ND["零号骰子"]
-    RM["锈月下城"]
+    A["示例角色 壹<br/>SAMPLE-01"]
+    B["示例角色 贰<br/>SAMPLE-02"]
+    C["示例角色 叁<br/>SAMPLE-03"]
+    U["UOSC<br/>联合神秘学事务理事会"]
+    G["微光"]
 
-    CA ==>|通缉| QZ
-    CA ==>|监察| RM
-    CA <-.->|冷战中| ND
-    ND ==>|庇护| NZ
-    NZ -->|情报交易| QZ
-    RV -.->|私下会面| NZ
-    RV -->|追查| QZ
-    QZ ==>|秘密救治| RM
+    U ==>|在编| A
+    G ==>|合作 / 悬赏| B
+    B <-.->|互相利用| C
+    A -->|监视| C
+    U -.->|名义管辖| G
 
-    classDef order fill:#1a1503,stroke:#ffb020,stroke-width:1.5px,color:#ffd88a
-    classDef under fill:#1a0310,stroke:#ff2e97,stroke-width:1.5px,color:#ffb0d8
-    classDef lone fill:#03161a,stroke:#00e5ff,stroke-width:1.5px,color:#a8f4ff
+    classDef order fill:#04101c,stroke:#4d9dff,stroke-width:1.5px,color:#bddeff
+    classDef shim fill:#1a1203,stroke:#ffb020,stroke-width:1.5px,color:#ffdca0
+    classDef loose fill:#1a0407,stroke:#ff4d5e,stroke-width:1.5px,color:#ffb3ba
 
-    class CA order
-    class ND,NZ under
-    class QZ,RV,RM lone
+    class U order
+    class G shim
+    class A order
+    class B shim
+    class C loose
 ---
 
-## 如何读这张图
+## 这是一张示例图
 
-- **实线箭头**代表已知的、正在生效的关系（追捕、庇护、交易）。
-- **虚线箭头**代表非正式或已经变质的关系——通常比实线更危险。
-- **粗箭头**是推动当前剧情的那几条线。
+你现在看到的三个角色都是**示例数据**，用来演示人物卡片、详情页与关系图长什么样。真正的角色由你自己写进 `src/content/characters/`。
 
-## 三组张力
+用完之后，把 `src/content/characters/` 下的 `sample-01.md`、`sample-02.md`、`sample-03.md` 删掉，再回来把这张图里的节点和连线一起删掉即可。
 
-### 一、通缉与庇护
+## 怎么读这张图
 
-枢机议会签发过一份针对**祁昭**的通缉令，罪名是「未经许可的义体改造」。而**南栀**把这份通缉令的原始文件倒卖给了祁昭本人——价格是一次问诊。
+- **实线箭头** —— 正在生效的关系（在编、庇护、合作）
+- **虚线箭头** —— 非正式或已变质的关系
+- **粗箭头** —— 推动当前剧情的主线
 
-### 二、职责与私交
+## 怎么改这张图
 
-**雷恩·瓦尔**是签发那份通缉令的人。他同时也在秘密联系南栀，购买一份不该存在的名单。他自己尚未决定，名单到手之后要交给议会，还是烧掉。
+整张图就是一段 Mermaid 源码，写在本文 frontmatter 的 `graph` 字段里。语法只有两种：
 
-### 三、地点的重量
+```text
+A["显示的名字<br/>副标题"]      ← 声明一个节点，<br/> 用来换行
+A ==>|关系说明| B                ← 画一条 A 指向 B 的连线，并写上关系
+```
 
-**锈月下城**不属于任何一方。枢机议会想清理它，零号骰子靠它藏身，祁昭在它里面看病。谁先动手，另外两方就会立刻知道。
+想加人，就在 `graph LR` 下面加一行节点、一行连线。想改配色，改 `classDef` 那几行里的色值。
 
-> 这张关系图同样来自 Markdown frontmatter 里的 `graph` 字段。新增人物之后，只要在这里补一行 `NZ -->|关系| XXX`，图谱就会自动更新。
+> 每个角色详情页里还有一张**属于他自己**的关系图，写在该角色 `.md` 的 `relations` 字段里——那张图只画跟他有关的人。
