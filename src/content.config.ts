@@ -176,6 +176,20 @@ const pages = defineCollection({
       .default([]),
     /** 人物关系总图（Mermaid 源码） */
     graph: z.string().optional(),
+    /** 组织口号，首页终端会大字展示 */
+    motto: z.string().optional(),
+    /** 首页「开机认证」界面与终端状态栏的文案 */
+    terminal: z
+      .object({
+        mark: z.string().default('GLIMMER // INTERNAL DATABASE'),
+        node: z.string().default('NODE-07'),
+        accessCode: z.string().default('GL-0000'),
+        statusLine: z.string().default('LINK STABLE'),
+        prompt: z.string().default('按任意键进行身份认证'),
+        bootLines: z.array(z.string()).default([]),
+        footnotes: z.array(z.string()).default([]),
+      })
+      .optional(),
   }),
 });
 

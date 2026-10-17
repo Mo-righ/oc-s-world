@@ -1,178 +1,301 @@
 ---
 import { getCollection, getEntry, render } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import SectionHeading from '../components/SectionHeading.astro';
-import CharacterCard from '../components/CharacterCard.astro';
-import Timeline from '../components/Timeline.astro';
+import BootGate from '../components/BootGate.astro';
+import DataRain from '../components/DataRain.astro';
 import { byOrder, url } from '../lib/site';
 
 const home = await getEntry('pages', 'home');
 if (!home) throw new Error('缺少 src/content/pages/home.md —— 首页文案是必需的。');
 const { Content } = await render(home);
+const d = home.data;
+const t = d.terminal ?? {};
 
 const characters = (await getCollection('characters')).sort(byOrder);
-const featured = characters.filter((c) => c.data.featured);
-const shown = (featured.length ? featured : characters).slice(0, 3);
-
 const factions = (await getCollection('factions')).sort(byOrder);
-
+const locations = (await getCollection('locations')).sort(byOrder);
+const lore = (await getCollection('lore')).sort(byOrder);
 const events = (await getCollection('timeline')).sort(byOrder);
-const recent = events.slice(-3);
 
-const stats = home.data.stats ?? [];
-const sections = home.data.sections ?? [];
+/** 系统读数：全部由内容集合实时统计，加一条档案这里就 +1 */
+const readouts = [
+  { label: '人物档案', code: 'PERSONS', value: characters.length },
+  { label: '势力节点', code: 'FACTIONS', value: factions.length },
+  { label: '地理节点', code: 'GEO', value: locations.length },
+  { label: '编年史', code: 'CHRONICLE', value: events.length },
+];
+
+const sections = d.sections ?? [];
+const recentLog = [...events].slice(-5).reverse();
+const topFactions = factions.slice(0, 7);
 ---
 
-<BaseLayout title="首页" accent={home.data.accent} kicker={home.data.kicker}>
-  <!-- ================= HERO ================= -->
-  <section class="rise relative">
-    <h1
-      class="text-[clamp(2.6rem,9vw,5.5rem)] font-black leading-[0.95] tracking-tight text-ink"
-      style={`text-shadow:0 0 60px ${home.data.accent}55`}
-    >
-      {home.data.title}
-    </h1>
-    {
-      home.data.subtitle && (
-        <p class="mt-3 font-mono text-sm tracking-[0.3em]" style={`color:${home.data.accent}`}>
-          {home.data.subtitle}
-        </p>
-      )
-    }
+<BaseLayout bare title={d.title} description={d.description} accent={d.accent} kicker={d.kicker}>
+  <BootGate
+    name={d.title}
+    mark={t.mark ?? 'GLIMMER // INTERNAL DATABASE'}
+    motto={d.motto ?? ''}
+    prompt={t.prompt}
+    bootLines={t.bootLines}
+    footnotes={t.footnotes}
+  />
 
-    {
-      home.data.description && (
-        <p class="mt-6 max-w-2xl text-[15px] leading-relaxed text-dust">{home.data.description}</p>
-      )
-    }
+  <DataRain />
 
-    <div class="mt-8 flex flex-wrap gap-3">
-      <a href={url('/settings')} class="btn">
-        <span style={`color:${home.data.accent}`}>▶</span> 进入设定档案
-      </a>
-      <a href={url('/factions')} class="btn">查看势力格局</a>
+  <!-- ==================== 终端状态栏 ==================== -->
+  <div class="mx-auto w-full max-w-6xl px-5 pt-6 sm:px-8">
+    <div class="term-bar rounded-t-md border border-edge border-b-0">
+      <span class="term-bar__dots"><i></i><i></i><i></i></span>
+      <span>{t.mark}</span>
+      <span class="ml-auto hidden items-center gap-2 sm:flex">
+        <span class="led"></span>
+        {t.statusLine}
+      </span>
+      <span class="text-amber" id="gl-clock">--:--:--</span>
+    </div>
+  </div>
+
+  <!-- ==================== 主视觉 ==================== -->
+  <section class="relative">
+    <div class="mx-auto w-full max-w-6xl px-5 pb-16 pt-14 sm:px-8 sm:pt-20">
+      <p class="kicker rise" style={`color:${d.accent}`}>
+        {t.node ?? 'NODE-07'} · ACCESS {t.accessCode ?? 'GL-0000'}
+      </p>
+
+      <h1
+        class="glitch rise mt-4 text-[clamp(4rem,18vw,10rem)] font-black leading-[0.82] tracking-tight text-ink"
+        data-text={d.title}
+        style={`text-shadow:0 0 60px ${d.accent}66, 0 0 160px ${d.accent}26`}
+      >
+        {d.title}
+      </h1>
+
+      {
+        d.subtitle && (
+          <p
+            class="rise mt-4 font-mono text-[11px] tracking-[0.5em] text-dust-2"
+            style="animation-delay:80ms"
+          >
+            {d.subtitle}
+          </p>
+        )
+      }
+
+      {
+        d.motto && (
+          <p
+            class="rise mt-7 font-mono text-[clamp(0.85rem,3vw,1.15rem)] tracking-[0.35em]"
+            style={`color:${d.accent};text-indent:.35em;animation-delay:160ms`}
+          >
+            「{d.motto}」
+          </p>
+        )
+      }
+
+      {
+        d.description && (
+          <p
+            class="rise mt-7 max-w-xl text-[14.5px] leading-relaxed text-dust"
+            style="animation-delay:240ms"
+          >
+            {d.description}
+          </p>
+        )
+      }
+
+      <div class="rise mt-10 flex flex-wrap gap-3" style="animation-delay:320ms">
+        <a href={url('/settings')} class="btn" style={`border-color:${d.accent}66;color:${d.accent}`}>
+          <span>▶</span> 打开档案索引
+        </a>
+        <a href={url('/characters')} class="btn">查阅人物</a>
+        <button type="button" class="btn" id="gl-relogin">
+          <span class="led led--amber"></span> 重新认证
+        </button>
+      </div>
     </div>
   </section>
 
-  <!-- ================= 数据条 ================= -->
-  {
-    stats.length > 0 && (
-      <section class="mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {stats.map((s, i) => (
-          <div
-            class="panel corners rise px-4 py-4"
-            style={`--accent:${home.data.accent};animation-delay:${i * 70}ms`}
-          >
-            <p class="font-mono text-[10px] tracking-[0.2em] text-dust-2">{s.label}</p>
-            <p class="mt-1.5 font-mono text-xl font-bold leading-tight" style={`color:${home.data.accent}`}>
-              {s.value}
-            </p>
-            {s.note && <p class="mt-1 text-[11.5px] leading-snug text-dust-2">{s.note}</p>}
-          </div>
-        ))}
-      </section>
-    )
-  }
-
-  <!-- ================= 世界观正文 ================= -->
-  <SectionHeading title="世界观简介" en="OVERVIEW" icon="◈" accent={home.data.accent} id="overview">
-    <div class="prose-oc">
-      <Content />
-    </div>
-  </SectionHeading>
-
-  <!-- ================= 栏目导览 ================= -->
-  {
-    sections.length > 0 && (
-      <SectionHeading title="档案索引" en="INDEX" icon="⌘" accent="#8b5cf6">
-        <div class="grid gap-4 sm:grid-cols-3">
-          {sections.map((s) => (
-            <a
-              href={url(s.href)}
-              class="panel corners hoverable group flex flex-col p-5"
-              style="--accent:#8b5cf6"
-            >
-              <span class="neon-text font-mono text-lg">{s.icon}</span>
-              <h3 class="mt-2.5 text-[16px] font-bold text-ink group-hover:text-[var(--accent)]">
-                {s.title}
-              </h3>
-              <p class="mt-1.5 text-[13px] leading-relaxed text-dust">{s.desc}</p>
-              <span class="mt-4 font-mono text-[11px] text-dust-2 transition-transform group-hover:translate-x-1 group-hover:text-[var(--accent)]">
-                OPEN →
+  <!-- ==================== 系统读数 ==================== -->
+  <section class="mx-auto w-full max-w-6xl px-5 sm:px-8">
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {
+        readouts.map((r) => (
+          <div class="readout" style={`--accent:${d.accent}`}>
+            <p class="font-mono text-[9.5px] tracking-[0.2em] text-dust-2">{r.code}</p>
+            <p class="mt-1.5 flex items-baseline gap-1.5">
+              <span
+                class="font-mono text-2xl font-bold tabular-nums"
+                style={`color:${d.accent}`}
+                data-scramble
+              >
+                {String(r.value).padStart(2, '0')}
               </span>
+              <span class="font-mono text-[10px] text-dust-2">条</span>
+            </p>
+            <p class="mt-0.5 text-[11.5px] text-dust">{r.label}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- ==================== 索引 + 日志 ==================== -->
+  <section class="mx-auto mt-12 grid w-full max-w-6xl gap-5 px-5 sm:px-8 lg:grid-cols-5">
+    <div class="term-panel lg:col-span-3">
+      <div class="term-bar">
+        <span class="led"></span>
+        <span class="text-dust">ARCHIVE INDEX</span>
+        <span class="ml-auto">3 CHANNELS</span>
+      </div>
+      <div class="p-1.5">
+        {
+          sections.map((s, i) => (
+            <a href={url(s.href)} class="term-row">
+              <span class="term-row__idx">{String(i + 1).padStart(2, '0')}</span>
+              <span class="font-mono" style={`color:${d.accent}`}>
+                {s.icon}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-ink">{s.title}</span>
+                <span class="mt-0.5 block font-sans text-[12px] leading-snug text-dust-2">
+                  {s.desc}
+                </span>
+              </span>
+              <span class="term-row__idx shrink-0 text-right">OPEN →</span>
             </a>
-          ))}
-        </div>
-      </SectionHeading>
-    )
-  }
+          ))
+        }
+      </div>
+    </div>
 
-  <!-- ================= 精选人物 ================= -->
-  {
-    shown.length > 0 && (
-      <SectionHeading title="人物档案" en="DRAMATIS" icon="◉" accent="#00e5ff">
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {shown.map((c) => (
-            <CharacterCard
-              id={c.id}
-              name={c.data.name}
-              enName={c.data.enName}
-              alias={c.data.alias}
-              title={c.data.title}
-              factionLabel={c.data.factionLabel}
-              status={c.data.status}
-              avatar={c.data.avatar}
-              accent={c.data.accent}
-              tags={c.data.tags}
-              summary={c.data.summary}
-            />
-          ))}
-        </div>
-        <div class="mt-6">
-          <a href={url('/characters')} class="btn">全部人物 →</a>
-        </div>
-      </SectionHeading>
-    )
-  }
+    <div class="term-panel lg:col-span-2">
+      <div class="term-bar">
+        <span class="led led--plasma"></span>
+        <span class="text-dust">LOG STREAM</span>
+        <span class="ml-auto">TAIL -5</span>
+      </div>
+      <ul class="p-1.5">
+        {
+          recentLog.map((e) => (
+            <li class="term-row">
+              <span class="term-row__idx shrink-0">{e.data.date.slice(0, 10)}</span>
+              <span class="min-w-0 flex-1 truncate text-ink/90" title={e.data.title}>
+                {e.data.title}
+              </span>
+              <span
+                class="chip shrink-0"
+                style={`color:${e.data.accent};border-color:${e.data.accent}44`}
+              >
+                {e.data.tag}
+              </span>
+            </li>
+          ))
+        }
+        <li class="term-row">
+          <span class="term-row__idx">…</span>
+          <span class="min-w-0 flex-1 text-dust-2">
+            <a class="hover:underline" href={url('/settings#history')}>读取完整编年史</a>
+          </span>
+        </li>
+      </ul>
+    </div>
+  </section>
 
-  <!-- ================= 时间轴预览 ================= -->
-  {
-    recent.length > 0 && (
-      <SectionHeading title="编年史" en="CHRONICLE" icon="⌛" accent="#ffb020">
-        <Timeline
-          items={recent.map((e) => ({
-            time: e.data.date,
-            title: e.data.title,
-            desc: e.data.summary,
-            tag: e.data.tag,
-            accent: e.data.accent,
-          }))}
-        />
-        <div class="mt-6">
-          <a href={url('/settings')} class="btn">完整编年史 →</a>
-        </div>
-      </SectionHeading>
-    )
-  }
-
-  <!-- ================= 势力条 ================= -->
-  {
-    factions.length > 0 && (
-      <SectionHeading title="主要势力" en="FACTIONS" icon="⬢" accent="#ff2e97">
-        <div class="flex flex-wrap gap-2.5">
-          {factions.map((f) => (
+  <!-- ==================== 关联节点 ==================== -->
+  <section class="mx-auto mt-5 w-full max-w-6xl px-5 sm:px-8">
+    <div class="term-panel">
+      <div class="term-bar">
+        <span class="led led--amber"></span>
+        <span class="text-dust">CONNECTED NODES</span>
+        <span class="ml-auto">{topFactions.length} ONLINE</span>
+      </div>
+      <div class="grid gap-px bg-edge/50 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          topFactions.map((f) => (
             <a
               href={url(`/factions/${f.id}`)}
-              class="panel hoverable flex items-center gap-2.5 px-3.5 py-2.5"
-              style={`--accent:${f.data.accent}`}
+              class="flex items-center gap-3 bg-void/85 px-4 py-3 transition-colors hover:bg-panel"
             >
-              <span class="font-mono text-sm" style={`color:${f.data.accent}`}>{f.data.emblem}</span>
-              <span class="text-[13.5px] text-ink">{f.data.name}</span>
-              <span class="font-mono text-[10px] text-dust-2">{f.data.type}</span>
+              <span class="font-mono text-base" style={`color:${f.data.accent}`}>
+                {f.data.emblem}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-[13px] text-ink">{f.data.name}</span>
+                <span class="block truncate font-mono text-[10px] text-dust-2">{f.data.type}</span>
+              </span>
+              <span
+                class="led shrink-0"
+                style={`background:${f.data.accent};box-shadow:0 0 8px ${f.data.accent}`}
+              />
             </a>
-          ))}
-        </div>
-      </SectionHeading>
-    )
-  }
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 档案摘要（正文） ==================== -->
+  <section class="mx-auto mt-12 w-full max-w-6xl px-5 pb-20 sm:px-8">
+    <div class="term-panel">
+      <div class="term-bar">
+        <span class="term-bar__dots"><i></i><i></i><i></i></span>
+        <span class="text-dust">briefing.md</span>
+        <span class="ml-auto hidden sm:inline">READ-ONLY</span>
+      </div>
+      <div class="prose-oc max-w-none px-5 py-7 sm:px-8">
+        <Content />
+      </div>
+    </div>
+
+    <p class="mt-6 text-center font-mono text-[10.5px] tracking-[0.24em] text-dust-2">
+      {lore.length} SYSTEMS INDEXED · {locations.length} GEO NODES · MIRROR SYNCED
+    </p>
+  </section>
+
+  <script>
+    // 终端时钟
+    const clock = document.getElementById('gl-clock');
+    if (clock) {
+      const p = (v: number) => String(v).padStart(2, '0');
+      const tick = () => {
+        const n = new Date();
+        clock.textContent = `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+      };
+      tick();
+      window.setInterval(tick, 1000);
+    }
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // 读数：先乱码，再定住
+    if (!reduced) {
+      document.querySelectorAll<HTMLElement>('[data-scramble]').forEach((el) => {
+        const final = el.textContent?.trim() ?? '';
+        const len = final.length;
+        let frame = 0;
+        const total = 16;
+        const id = window.setInterval(() => {
+          frame += 1;
+          if (frame >= total) {
+            el.textContent = final;
+            window.clearInterval(id);
+            return;
+          }
+          el.textContent = String(Math.floor(Math.random() * 99))
+            .padStart(len, '0')
+            .slice(0, len);
+        }, 48);
+      });
+    }
+
+    // 重新体验认证
+    document.getElementById('gl-relogin')?.addEventListener('click', () => {
+      try {
+        sessionStorage.removeItem('gl-gate-auth');
+      } catch {
+        /* 忽略 */
+      }
+      window.location.reload();
+    });
+  </script>
 </BaseLayout>

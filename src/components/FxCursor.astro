@@ -1,0 +1,93 @@
+---
+/**
+ * 自定义光标
+ * —— 一个即时跟随的小点 + 一个带缓动的准星环。
+ * 只在精确指针设备（鼠标/触控板）启用；触屏设备完全不受影响。
+ */
+---
+
+<div class="fx-cursor-layer" id="fx-cursor-layer" data-hover="0" data-down="0" aria-hidden="true">
+  <span class="fx-ring" id="fx-ring"></span>
+  <span class="fx-dot" id="fx-dot"></span>
+</div>
+
+<script>
+  const layer = document.getElementById('fx-cursor-layer');
+  const dot = document.getElementById('fx-dot');
+  const ring = document.getElementById('fx-ring');
+  const root = document.documentElement;
+
+  const finePointer = window.matchMedia('(pointer: fine)').matches;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (layer && dot && ring && finePointer) {
+    root.classList.add('fx-cursor');
+
+    let mx = window.innerWidth / 2;
+    let my = window.innerHeight / 2;
+    let rx = mx;
+    let ry = my;
+    let running = false;
+
+    const place = (el: HTMLElement, x: number, y: number) => {
+      el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    };
+
+    const loop = () => {
+      // 环做缓动跟随，产生「拖尾」手感
+      const ease = reduced ? 1 : 0.18;
+      rx += (mx - rx) * ease;
+      ry += (my - ry) * ease;
+      place(ring, rx, ry);
+      place(dot, mx, my);
+
+      if (Math.abs(mx - rx) < 0.2 && Math.abs(my - ry) < 0.2 && !running) {
+        running = false;
+        return;
+      }
+      requestAnimationFrame(loop);
+    };
+
+    const kick = () => {
+      if (!running) {
+        running = true;
+        requestAnimationFrame(loop);
+      }
+    };
+
+    window.addEventListener(
+      'pointermove',
+      (e) => {
+        if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+        mx = e.clientX;
+        my = e.clientY;
+        if (layer.dataset.ready !== '1') {
+          layer.dataset.ready = '1';
+          rx = mx;
+          ry = my;
+          place(ring, rx, ry);
+          place(dot, mx, my);
+        }
+        kick();
+      },
+      { passive: true }
+    );
+
+    const interactive = 'a, button, [role="button"], [data-cursor="hover"], summary, input, textarea';
+
+    document.addEventListener(
+      'pointerover',
+      (e) => {
+        const t = e.target as HTMLElement | null;
+        layer.dataset.hover = t && t.closest(interactive) ? '1' : '0';
+      },
+      { passive: true }
+    );
+
+    window.addEventListener('pointerdown', () => (layer.dataset.down = '1'), { passive: true });
+    window.addEventListener('pointerup', () => (layer.dataset.down = '0'), { passive: true });
+
+    document.addEventListener('mouseleave', () => root.classList.add('fx-leave'));
+    document.addEventListener('mouseenter', () => root.classList.remove('fx-leave'));
+  }
+</script>

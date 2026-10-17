@@ -2,6 +2,8 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import FxCursor from '../components/FxCursor.astro';
+import CrtLayer from '../components/CrtLayer.astro';
 import { SITE_TITLE, SITE_TITLE_EN, SITE_DESCRIPTION, url } from '../lib/site';
 
 interface Props {
@@ -9,6 +11,8 @@ interface Props {
   description?: string;
   accent?: string;
   kicker?: string;
+  /** 由页面自己控制主内容区的宽度与内边距（首页终端用） */
+  bare?: boolean;
 }
 
 const {
@@ -16,6 +20,7 @@ const {
   description = SITE_DESCRIPTION,
   accent = '#00e5ff',
   kicker = SITE_TITLE_EN,
+  bare = false,
 } = Astro.props;
 
 const pageTitle = title ? `${title} · ${SITE_TITLE}` : `${SITE_TITLE} · 世界观档案`;
@@ -47,25 +52,36 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com
   <body>
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:border focus:border-neon focus:bg-void focus:px-4 focus:py-2 focus:text-neon"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[300] focus:rounded focus:border focus:border-neon focus:bg-void focus:px-4 focus:py-2 focus:text-neon"
     >
       跳到正文
     </a>
 
     <div style={`--accent:${accent};`} class="relative flex min-h-screen flex-col">
       <Nav />
-      <main id="main" class="mx-auto w-full max-w-6xl flex-1 px-5 pb-24 pt-10 sm:px-8">
-        {
-          kicker && (
-            <p class="kicker mb-3 rise" style={`color:${accent};opacity:.85`}>
-              {kicker}
-            </p>
-          )
-        }
-        <slot />
-      </main>
+
+      {
+        bare ? (
+          <main id="main" class="relative z-10 flex-1">
+            <slot />
+          </main>
+        ) : (
+          <main id="main" class="relative z-10 mx-auto w-full max-w-6xl flex-1 px-5 pb-24 pt-10 sm:px-8">
+            {kicker && (
+              <p class="kicker mb-3 rise" style={`color:${accent};opacity:.85`}>
+                {kicker}
+              </p>
+            )}
+            <slot />
+          </main>
+        )
+      }
+
       <Footer />
     </div>
+
+    <CrtLayer />
+    <FxCursor />
 
     <slot name="scripts" />
   </body>

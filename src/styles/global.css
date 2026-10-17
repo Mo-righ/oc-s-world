@@ -390,3 +390,567 @@ body::after {
     transform: none;
   }
 }
+
+/* ============================================================
+   科幻增强层
+   1) 自定义光标   2) CRT 扫描层   3) 故障字
+   4) 开机认证界面 5) 终端 UI
+   ============================================================ */
+
+/* ---------------- 1. 自定义光标 ---------------- */
+@media (pointer: fine) {
+  html.fx-cursor,
+  html.fx-cursor * {
+    cursor: none !important;
+  }
+}
+
+.fx-cursor-layer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+}
+@media (pointer: fine) {
+  html.fx-cursor .fx-cursor-layer {
+    display: block;
+  }
+}
+
+.fx-dot,
+.fx-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  will-change: transform;
+  border-radius: 50%;
+}
+
+.fx-dot {
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  background: var(--color-neon);
+  box-shadow:
+    0 0 10px var(--color-neon),
+    0 0 2px #fff;
+  transition:
+    background-color 0.2s,
+    border-radius 0.2s,
+    box-shadow 0.2s;
+  z-index: 2;
+}
+
+.fx-ring {
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 1px solid color-mix(in srgb, var(--color-neon) 50%, transparent);
+  z-index: 1;
+  transition:
+    width 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    margin 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.26s,
+    background-color 0.26s,
+    opacity 0.2s;
+}
+.fx-ring::before,
+.fx-ring::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 1px;
+  height: 4px;
+  background: currentColor;
+  transform: translateX(-50%);
+  color: var(--color-neon);
+  opacity: 0.9;
+}
+.fx-ring::before {
+  top: -5px;
+}
+.fx-ring::after {
+  bottom: -5px;
+}
+
+/* 悬停可交互元素 */
+.fx-cursor-layer[data-hover='1'] .fx-ring {
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border-color: var(--color-plasma);
+  background: color-mix(in srgb, var(--color-plasma) 9%, transparent);
+}
+.fx-cursor-layer[data-hover='1'] .fx-dot {
+  background: var(--color-plasma);
+  border-radius: 1px;
+  box-shadow: 0 0 14px var(--color-plasma);
+}
+.fx-cursor-layer[data-hover='1'] .fx-ring::before,
+.fx-cursor-layer[data-hover='1'] .fx-ring::after {
+  color: var(--color-plasma);
+}
+
+/* 按下 */
+.fx-cursor-layer[data-down='1'] .fx-ring {
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-color: var(--color-acid);
+}
+.fx-cursor-layer[data-down='1'] .fx-dot {
+  background: var(--color-acid);
+}
+
+/* 离开窗口 */
+html.fx-leave .fx-cursor-layer {
+  opacity: 0;
+}
+
+/* ---------------- 2. CRT 扫描层 ---------------- */
+.crt-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+  overflow: hidden;
+}
+.crt-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.26) 3px,
+    rgba(0, 0, 0, 0.26) 4px
+  );
+  opacity: 0.34;
+}
+.crt-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22vh;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 229, 255, 0.035) 40%,
+    rgba(0, 229, 255, 0.11) 50%,
+    rgba(0, 229, 255, 0.035) 60%,
+    transparent 100%
+  );
+  animation: crt-sweep 11s linear infinite;
+}
+.crt-vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 14vw rgba(0, 0, 0, 0.72);
+}
+@keyframes crt-sweep {
+  0% {
+    transform: translateY(-24vh);
+  }
+  100% {
+    transform: translateY(124vh);
+  }
+}
+
+/* ---------------- 3. 故障字 ---------------- */
+.glitch {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.glitch::before {
+  color: var(--color-plasma);
+  transform: translate(-3px, 1px);
+  clip-path: inset(0 0 56% 0);
+  opacity: 0.72;
+  animation: glitch-a 4.2s steps(1, end) infinite;
+}
+.glitch::after {
+  color: var(--color-neon);
+  transform: translate(3px, -1px);
+  clip-path: inset(56% 0 0 0);
+  opacity: 0.72;
+  animation: glitch-b 3.4s steps(1, end) infinite;
+}
+@keyframes glitch-a {
+  0%,
+  92%,
+  100% {
+    transform: translate(-3px, 1px);
+    opacity: 0;
+  }
+  93% {
+    transform: translate(-7px, -2px);
+    opacity: 0.85;
+  }
+  95% {
+    transform: translate(4px, 2px);
+    opacity: 0.7;
+  }
+  97% {
+    transform: translate(-2px, 0);
+    opacity: 0.8;
+  }
+}
+@keyframes glitch-b {
+  0%,
+  88%,
+  100% {
+    transform: translate(3px, -1px);
+    opacity: 0;
+  }
+  89% {
+    transform: translate(8px, 2px);
+    opacity: 0.8;
+  }
+  91% {
+    transform: translate(-5px, -2px);
+    opacity: 0.65;
+  }
+  94% {
+    transform: translate(2px, 1px);
+    opacity: 0.75;
+  }
+}
+
+/* 常驻微抖动标题 */
+.gl-flicker {
+  animation: gl-flicker 6s steps(1, end) infinite;
+}
+@keyframes gl-flicker {
+  0%,
+  96%,
+  100% {
+    opacity: 1;
+  }
+  97% {
+    opacity: 0.55;
+  }
+  98% {
+    opacity: 1;
+  }
+  99% {
+    opacity: 0.78;
+  }
+}
+
+/* ---------------- 4. 开机认证界面 ---------------- */
+.gl-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: #05050a;
+  padding: 2rem 1.25rem;
+  overflow: hidden;
+  transition: opacity 0.55s ease;
+}
+/* 已认证过：直接隐藏，避免刷新闪烁 */
+html.gl-authed .gl-gate {
+  display: none;
+}
+.gl-gate.is-out {
+  opacity: 0;
+  pointer-events: none;
+}
+.gl-gate__scan {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0.4) 3px,
+      rgba(0, 0, 0, 0.4) 4px
+    ),
+    radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255, 176, 32, 0.07), transparent 70%);
+  pointer-events: none;
+}
+.gl-gate__inner {
+  position: relative;
+  width: min(680px, 100%);
+  text-align: center;
+}
+.gl-gate__mark {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.36em;
+  color: var(--color-dust-2);
+  text-transform: uppercase;
+}
+.gl-gate__title {
+  margin-top: 1.25rem;
+  font-size: clamp(4rem, 17vw, 9rem);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: 0.06em;
+  color: var(--color-ink);
+  text-shadow:
+    0 0 40px rgba(255, 176, 32, 0.45),
+    0 0 120px rgba(255, 176, 32, 0.18);
+}
+.gl-gate__motto {
+  margin-top: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: clamp(0.72rem, 2.6vw, 0.9rem);
+  letter-spacing: 0.42em;
+  color: var(--color-amber);
+  text-indent: 0.42em;
+}
+.gl-gate__log {
+  margin: 2rem auto 0;
+  min-height: 7.5rem;
+  max-width: 30rem;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--color-dust);
+}
+.gl-gate__log b {
+  color: var(--color-acid);
+  font-weight: 400;
+}
+.gl-gate__log i {
+  color: var(--color-plasma);
+  font-style: normal;
+}
+.gl-gate__prompt {
+  margin-top: 1.75rem;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.22em;
+  color: var(--color-ink);
+  animation: oc-pulse 1.6s ease-in-out infinite;
+}
+.gl-gate__prompt::after {
+  content: '_';
+  margin-left: 0.2em;
+  color: var(--color-amber);
+}
+.gl-gate__foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--color-dust-2);
+}
+.gl-gate__skip {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--color-dust-2);
+  border: 1px solid var(--color-edge);
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+.gl-gate__skip:hover {
+  color: var(--color-amber);
+  border-color: var(--color-amber);
+}
+
+/* 认证成功时的横向扫描线 */
+.gl-gate__wipe {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: var(--color-amber);
+  box-shadow: 0 0 30px 6px rgba(255, 176, 32, 0.7);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+}
+.gl-gate.is-wipe .gl-gate__wipe {
+  animation: gate-wipe 0.6s ease-out forwards;
+}
+@keyframes gate-wipe {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  60% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* ---------------- 5. 终端 UI ---------------- */
+.term-panel {
+  position: relative;
+  border: 1px solid var(--color-edge);
+  border-radius: 0.5rem;
+  background:
+    linear-gradient(180deg, rgba(255, 176, 32, 0.035), transparent 40%),
+    rgba(10, 10, 15, 0.72);
+  backdrop-filter: blur(3px);
+}
+.term-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--color-edge);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--color-dust-2);
+  text-transform: uppercase;
+}
+.term-bar__dots {
+  display: flex;
+  gap: 4px;
+}
+.term-bar__dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-edge-2);
+}
+.term-bar__dots i:first-child {
+  background: var(--color-plasma);
+  opacity: 0.7;
+}
+.term-bar__dots i:nth-child(2) {
+  background: var(--color-amber);
+  opacity: 0.7;
+}
+.term-bar__dots i:nth-child(3) {
+  background: var(--color-acid);
+  opacity: 0.7;
+}
+
+.led {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-acid);
+  box-shadow: 0 0 8px var(--color-acid);
+  animation: oc-pulse 1.8s ease-in-out infinite;
+}
+.led--amber {
+  background: var(--color-amber);
+  box-shadow: 0 0 8px var(--color-amber);
+}
+.led--plasma {
+  background: var(--color-plasma);
+  box-shadow: 0 0 8px var(--color-plasma);
+}
+
+/* 终端行 */
+.term-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid rgba(36, 36, 58, 0.6);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--color-dust);
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    padding-left 0.2s;
+}
+.term-row:last-child {
+  border-bottom: 0;
+}
+a.term-row:hover {
+  background: rgba(255, 176, 32, 0.06);
+  color: var(--color-amber);
+  padding-left: 1.15rem;
+}
+.term-row__idx {
+  color: var(--color-dust-2);
+  font-size: 10.5px;
+  min-width: 2.4rem;
+}
+
+/* 读数格 */
+.readout {
+  border: 1px solid var(--color-edge);
+  border-radius: 0.4rem;
+  background: rgba(10, 10, 15, 0.6);
+  padding: 0.9rem 1rem;
+  position: relative;
+  overflow: hidden;
+}
+.readout::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--accent, var(--color-amber));
+  opacity: 0.7;
+}
+
+/* 打字机光标 */
+.tw-caret::after {
+  content: '▍';
+  margin-left: 2px;
+  color: var(--color-amber);
+  animation: oc-pulse 1s steps(1, end) infinite;
+}
+
+/* 数据雨画布 */
+.data-rain {
+  position: fixed;
+  inset: 0;
+  /* 必须为负 z-index：否则会盖在文字上方（canvas 底色是不透明的） */
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.55;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, #000 30%, transparent 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-sweep,
+  .glitch::before,
+  .glitch::after,
+  .gl-flicker,
+  .led,
+  .term-row__dot {
+    animation: none !important;
+  }
+  .gl-gate__prompt {
+    animation: none;
+  }
+}
+

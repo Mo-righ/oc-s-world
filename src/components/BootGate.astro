@@ -1,0 +1,179 @@
+---
+/**
+ * 开机认证界面 —— 「按任意键接入」
+ * 只在首页出现；认证通过后写入 sessionStorage，本次会话内不再重复。
+ * 也可以用右上角「跳过认证」直接进入。
+ */
+interface Props {
+  name: string;
+  mark: string;
+  motto: string;
+  prompt?: string;
+  bootLines?: string[];
+  footnotes?: string[];
+}
+
+const {
+  name,
+  mark,
+  motto,
+  prompt = '按任意键进行身份认证',
+  bootLines = [],
+  footnotes = [],
+} = Astro.props;
+---
+
+<!-- 放在最前面：本次会话已认证过就直接隐藏，避免刷新时闪一下 -->
+<script is:inline>
+  (function () {
+    try {
+      if (sessionStorage.getItem('gl-gate-auth') === '1') {
+        document.documentElement.classList.add('gl-authed');
+      }
+    } catch (e) {
+      /* sessionStorage 不可用（隐私模式）时忽略 */
+    }
+  })();
+</script>
+
+<div class="gl-gate" id="gl-gate" role="dialog" aria-modal="true" aria-label="微光数据库身份认证">
+  <div class="gl-gate__scan"></div>
+  <span class="gl-gate__wipe"></span>
+
+  <a class="gl-gate__skip" href="#main" id="gl-skip">跳过认证</a>
+
+  <div class="gl-gate__inner">
+    <p class="gl-gate__mark">{mark}</p>
+    <h1 class="gl-gate__title glitch gl-flicker" data-text={name}>{name}</h1>
+    <p class="gl-gate__motto">{motto}</p>
+
+    <div class="gl-gate__log" id="gl-log" aria-live="polite"></div>
+    <p class="gl-gate__prompt" id="gl-prompt">{prompt}</p>
+  </div>
+
+  {
+    footnotes.length > 0 && (
+      <div class="gl-gate__foot">
+        {footnotes.map((f) => (
+          <span>{f}</span>
+        ))}
+      </div>
+    )
+  }
+</div>
+
+<!-- 认证时逐行打出来的日志；放在隐藏容器里，脚本读取文本 -->
+<div id="gl-lines" hidden>
+  {bootLines.map((line) => <span data-line>{line}</span>)}
+</div>
+
+<script>
+  const gate = document.getElementById('gl-gate') as HTMLElement | null;
+
+  if (gate) {
+    const root = document.documentElement;
+    const log = document.getElementById('gl-log') as HTMLElement | null;
+    const promptEl = document.getElementById('gl-prompt') as HTMLElement | null;
+    const skip = document.getElementById('gl-skip') as HTMLElement | null;
+
+    // 已认证：直接移除，连监听都不挂
+    if (root.classList.contains('gl-authed')) {
+      gate.remove();
+    } else {
+      const lines = Array.from(
+        document.querySelectorAll<HTMLElement>('#gl-lines [data-line]')
+      ).map((el) => el.textContent ?? '');
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let started = false;
+      let done = false;
+
+      const finish = () => {
+        if (done) return;
+        done = true;
+        try {
+          sessionStorage.setItem('gl-gate-auth', '1');
+        } catch {
+          /* 忽略 */
+        }
+        root.classList.add('gl-authed');
+        gate.classList.add('is-wipe');
+
+        window.setTimeout(() => {
+          gate.classList.add('is-out');
+          window.setTimeout(() => {
+            gate.remove();
+            window.dispatchEvent(new CustomEvent('glimmer:auth'));
+          }, reduced ? 60 : 560);
+        }, reduced ? 60 : 460);
+      };
+
+      const typeLine = (text: string, onDone: () => void) => {
+        if (!log) return onDone();
+        const row = document.createElement('div');
+        log.appendChild(row);
+
+        if (reduced) {
+          row.innerHTML = text.replace(/OK/g, '<b>OK</b>');
+          onDone();
+          return;
+        }
+
+        let i = 0;
+        const tick = () => {
+          row.textContent = text.slice(0, i);
+          i += 1;
+          if (i <= text.length) {
+            window.setTimeout(tick, 8);
+          } else {
+            row.innerHTML = text.replace(/OK/g, '<b>OK</b>');
+            onDone();
+          }
+        };
+        tick();
+      };
+
+      const start = () => {
+        if (started || done) return;
+        started = true;
+        if (promptEl) promptEl.style.visibility = 'hidden';
+        if (log) log.innerHTML = '';
+
+        const seq = lines.length ? lines : ['> 握手完成 OK'];
+        let i = 0;
+        const next = () => {
+          if (i >= seq.length) {
+            window.setTimeout(finish, reduced ? 0 : 420);
+            return;
+          }
+          const line = seq[i++];
+          typeLine(line, () => window.setTimeout(next, reduced ? 0 : 160));
+        };
+        next();
+      };
+
+      // 按任意键 / 点任意处 / 触摸，都开始认证
+      window.addEventListener('keydown', (e) => {
+        // 允许 F5 / F12 / Tab 等保留浏览器行为
+        if (['F5', 'F12', 'Tab'].includes(e.key)) return;
+        start();
+      });
+      gate.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement)?.closest('#gl-skip')) return;
+        start();
+      });
+      gate.addEventListener('touchstart', start, { passive: true });
+      window.addEventListener('wheel', start, { passive: true, once: true });
+
+      // 跳过按钮
+      skip?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        finish();
+        window.setTimeout(() => {
+          document.getElementById('main')?.scrollIntoView({ block: 'start' });
+        }, 120);
+      });
+    }
+  }
+</script>
