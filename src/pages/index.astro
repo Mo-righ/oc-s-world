@@ -32,6 +32,7 @@ const topFactions = factions.slice(0, 7);
 
 <BaseLayout bare title={d.title} description={d.description} accent={d.accent} kicker={d.kicker}>
   <BootGate
+    slot="overlay"
     name={d.title}
     mark={t.mark ?? 'GLIMMER // INTERNAL DATABASE'}
     motto={d.motto ?? ''}
@@ -44,14 +45,14 @@ const topFactions = factions.slice(0, 7);
 
   <!-- ==================== 终端状态栏 ==================== -->
   <div class="mx-auto w-full max-w-6xl px-5 pt-6 sm:px-8">
-    <div class="term-bar rounded-t-md border border-edge border-b-0">
+    <div class="term-bar rounded-md border border-edge bg-panel/70 backdrop-blur-sm">
       <span class="term-bar__dots"><i></i><i></i><i></i></span>
-      <span>{t.mark}</span>
+      <span class="truncate">{t.mark}</span>
       <span class="ml-auto hidden items-center gap-2 sm:flex">
         <span class="led"></span>
         {t.statusLine}
       </span>
-      <span class="text-amber" id="gl-clock">--:--:--</span>
+      <span class="text-amber tabular-nums" id="gl-clock">--:--:--</span>
     </div>
   </div>
 

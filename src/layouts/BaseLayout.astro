@@ -83,6 +83,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com
     <CrtLayer />
     <FxCursor />
 
+    {/* 全屏遮罩类组件（开机认证等）必须放在 main 之外，否则会被 main 的
+        stacking context 困住，z-index 再高也压不过 header */}
+    <slot name="overlay" />
+
     <slot name="scripts" />
   </body>
 </html>

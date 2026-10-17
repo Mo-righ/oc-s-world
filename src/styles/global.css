@@ -666,6 +666,10 @@ html.fx-leave .fx-cursor-layer {
 html.gl-authed .gl-gate {
   display: none;
 }
+/* 认证期间锁滚动 */
+html.gl-locked {
+  overflow: hidden;
+}
 .gl-gate.is-out {
   opacity: 0;
   pointer-events: none;
@@ -736,9 +740,12 @@ html.gl-authed .gl-gate {
 .gl-gate__prompt {
   margin-top: 1.75rem;
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13px;
   letter-spacing: 0.22em;
-  color: var(--color-ink);
+  color: #fff;
+  text-shadow:
+    0 0 14px rgba(255, 255, 255, 0.35),
+    0 0 30px rgba(255, 176, 32, 0.35);
   animation: oc-pulse 1.6s ease-in-out infinite;
 }
 .gl-gate__prompt::after {

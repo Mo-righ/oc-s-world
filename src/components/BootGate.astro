@@ -26,12 +26,16 @@ const {
 <!-- 放在最前面：本次会话已认证过就直接隐藏，避免刷新时闪一下 -->
 <script is:inline>
   (function () {
+    var root = document.documentElement;
     try {
       if (sessionStorage.getItem('gl-gate-auth') === '1') {
-        document.documentElement.classList.add('gl-authed');
+        root.classList.add('gl-authed');
+      } else {
+        // 认证期间锁住页面滚动，避免在遮罩下面偷偷滑动
+        root.classList.add('gl-locked');
       }
     } catch (e) {
-      /* sessionStorage 不可用（隐私模式）时忽略 */
+      root.classList.add('gl-locked');
     }
   })();
 </script>
@@ -97,6 +101,7 @@ const {
           /* 忽略 */
         }
         root.classList.add('gl-authed');
+        root.classList.remove('gl-locked');
         gate.classList.add('is-wipe');
 
         window.setTimeout(() => {
