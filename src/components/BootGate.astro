@@ -100,7 +100,19 @@ const {
       {clearance && <span class="gl-gate__id-clr">{clearance}</span>}
     </div>
 
-    <div class="gl-gate__log" id="gl-log" aria-live="polite"></div>
+    <div class="gl-gate__log" id="gl-log" aria-live="polite">
+      <!-- 待机态：信号波动条，按下任意键后随 log.innerHTML='' 一起清掉 -->
+      <div class="gl-gate__idle" aria-hidden="true">
+        <span class="gl-gate__idle-tag">SIG</span>
+        <span class="gl-gate__idle-bars">
+          {
+            Array.from({ length: 44 }).map((_, i) => (
+              <i style={`animation-delay:${((i % 11) * 0.09).toFixed(2)}s`} />
+            ))
+          }
+        </span>
+      </div>
+    </div>
     <p class="gl-gate__prompt" id="gl-prompt" data-touch={touchPrompt}>{prompt}</p>
 
     <!-- 底部进度条：等待时来回扫，认证时按行推进 -->
