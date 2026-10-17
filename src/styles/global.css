@@ -8,10 +8,10 @@
   /* —— 背景层 —— */
   --color-void: #0a0a0f;
   --color-void-2: #0d0d16;
-  --color-panel: #12121d;
-  --color-panel-2: #171726;
-  --color-edge: #24243a;
-  --color-edge-2: #33334f;
+  --color-panel: #14141f;
+  --color-panel-2: #1a1a2b;
+  --color-edge: #2b2b45;
+  --color-edge-2: #3d3d5d;
 
   /* —— 霓虹主色 —— */
   --color-neon: #00e5ff;
@@ -21,9 +21,9 @@
   --color-amber: #ffb020;
 
   /* —— 文本 —— */
-  --color-ink: #e8ebf7;
-  --color-dust: #8a92b2;
-  --color-dust-2: #5d6484;
+  --color-ink: #edf0fa;
+  --color-dust: #99a1c0;
+  --color-dust-2: #6d7597;
 
   --font-sans:
     'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
@@ -218,7 +218,7 @@ body::after {
 
 /* ============================ 正文排版 ============================ */
 .prose-oc {
-  color: color-mix(in srgb, var(--color-ink) 88%, transparent);
+  color: color-mix(in srgb, var(--color-ink) 92%, transparent);
   font-size: 1rem;
   line-height: 1.9;
 }
@@ -658,7 +658,7 @@ html.fx-leave .fx-cursor-layer {
   display: grid;
   place-items: center;
   background: #05050a;
-  padding: 2rem 1.25rem;
+  padding: 3.6rem 1.25rem 4.6rem;
   overflow: hidden;
   transition: opacity 0.55s ease;
 }
@@ -674,25 +674,219 @@ html.gl-locked {
   opacity: 0;
   pointer-events: none;
 }
+
+/* 点阵底纹 */
+.gl-gate__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 176, 32, 0.22) 1px, transparent 1px);
+  background-size: 30px 30px;
+  -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 46%, #000 8%, transparent 76%);
+  mask-image: radial-gradient(ellipse 62% 58% at 50% 46%, #000 8%, transparent 76%);
+  opacity: 0.55;
+}
+
+/* 横纹 + 中心暖光 */
 .gl-gate__scan {
   position: absolute;
   inset: 0;
+  pointer-events: none;
   background:
     repeating-linear-gradient(
       to bottom,
       rgba(0, 0, 0, 0) 0px,
       rgba(0, 0, 0, 0) 2px,
-      rgba(0, 0, 0, 0.4) 3px,
-      rgba(0, 0, 0, 0.4) 4px
+      rgba(0, 0, 0, 0.42) 3px,
+      rgba(0, 0, 0, 0.42) 4px
     ),
-    radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255, 176, 32, 0.07), transparent 70%);
+    radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255, 176, 32, 0.08), transparent 70%);
+}
+
+/* 横穿的竖扫描线 */
+.gl-gate__vscan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(0, 229, 255, 0.55), transparent);
+  box-shadow: 0 0 22px 3px rgba(0, 229, 255, 0.3);
+  opacity: 0;
+  animation: gate-vscan 7.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+@keyframes gate-vscan {
+  0% {
+    transform: translateX(4vw);
+    opacity: 0;
+  }
+  8%,
+  86% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(96vw);
+    opacity: 0;
+  }
+}
+
+/* 内框四角 */
+.gl-gate__frame {
+  position: absolute;
+  inset: 1.1rem;
   pointer-events: none;
 }
+.gl-gate__frame i {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 0 solid rgba(255, 176, 32, 0.45);
+}
+.gl-gate__frame i:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+.gl-gate__frame i:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-top-width: 1px;
+  border-right-width: 1px;
+}
+.gl-gate__frame i:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+.gl-gate__frame i:nth-child(4) {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+/* 边角 HUD */
+.gl-gate__hud {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-dust-2);
+}
+.gl-gate__hud b {
+  color: var(--color-amber);
+  font-weight: 400;
+}
+.gl-gate__hud--tl {
+  top: 2.1rem;
+  left: 2.1rem;
+}
+.gl-gate__hud--bl {
+  bottom: 4.3rem;
+  left: 2.1rem;
+}
+.gl-gate__hud--br {
+  bottom: 4.3rem;
+  right: 2.1rem;
+  text-align: right;
+  align-items: flex-end;
+}
+
 .gl-gate__inner {
   position: relative;
+  z-index: 1;
   width: min(680px, 100%);
   text-align: center;
 }
+
+/* 标题区 */
+.gl-gate__hero {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+.gl-gate__hero > :not(.gl-gate__reticle) {
+  position: relative;
+  z-index: 1;
+}
+
+/* 同心环 + 刻度 */
+.gl-gate__reticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(78vw, 470px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+}
+.gl-gate__reticle i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+/* 用 i.rt-xxx 提高特异性，否则 inset:0 会盖掉下面的 inset 值 */
+i.rt-r1 {
+  border: 1px dashed rgba(255, 176, 32, 0.34);
+  animation: rt-spin 44s linear infinite;
+}
+i.rt-r2 {
+  inset: 9%;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  animation: rt-spin 28s linear infinite reverse;
+}
+i.rt-r3 {
+  inset: 20%;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.gl-gate__reticle b {
+  position: absolute;
+  background: rgba(255, 176, 32, 0.55);
+}
+.rt-c1 {
+  left: 50%;
+  top: -3px;
+  width: 1px;
+  height: 11px;
+  transform: translateX(-50%);
+}
+.rt-c2 {
+  left: 50%;
+  bottom: -3px;
+  width: 1px;
+  height: 11px;
+  transform: translateX(-50%);
+}
+.rt-c3 {
+  top: 50%;
+  left: -3px;
+  height: 1px;
+  width: 11px;
+  transform: translateY(-50%);
+}
+.rt-c4 {
+  top: 50%;
+  right: -3px;
+  height: 1px;
+  width: 11px;
+  transform: translateY(-50%);
+}
+@keyframes rt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .gl-gate__mark {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -719,9 +913,44 @@ html.gl-locked {
   color: var(--color-amber);
   text-indent: 0.42em;
 }
+
+/* 访问者身份 */
+.gl-gate__id {
+  margin-top: 1.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+.gl-gate__id-k {
+  color: var(--color-dust-2);
+}
+.gl-gate__id-n {
+  color: var(--color-amber);
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 16px rgba(255, 176, 32, 0.55);
+}
+.gl-gate__id-role {
+  color: var(--color-dust);
+}
+.gl-gate__id-clr {
+  border: 1px solid rgba(182, 255, 60, 0.32);
+  border-radius: 99px;
+  padding: 0.1rem 0.6rem;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  color: var(--color-acid);
+}
+
 .gl-gate__log {
-  margin: 2rem auto 0;
-  min-height: 7.5rem;
+  margin: 1.6rem auto 0;
+  /* 预留 6 行的高度，打字时下面的进度条不会跳 */
+  min-height: 8.6rem;
   max-width: 30rem;
   text-align: left;
   font-family: var(--font-mono);
@@ -738,7 +967,7 @@ html.gl-locked {
   font-style: normal;
 }
 .gl-gate__prompt {
-  margin-top: 1.75rem;
+  margin-top: 1.4rem;
   font-family: var(--font-mono);
   font-size: 13px;
   letter-spacing: 0.22em;
@@ -753,6 +982,50 @@ html.gl-locked {
   margin-left: 0.2em;
   color: var(--color-amber);
 }
+
+/* 进度条 */
+.gl-gate__meter {
+  margin: 1.7rem auto 0;
+  width: min(300px, 76%);
+  display: grid;
+  gap: 0.55rem;
+  justify-items: center;
+}
+.gl-gate__meter-bar {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.09);
+}
+.gl-gate__meter-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--color-amber);
+  box-shadow: 0 0 12px var(--color-amber);
+  transition: width 0.35s ease;
+}
+.gl-gate__meter-bar:not(.is-live) i {
+  width: 34%;
+  animation: gate-meter 2.4s cubic-bezier(0.55, 0, 0.45, 1) infinite;
+}
+@keyframes gate-meter {
+  0% {
+    transform: translateX(-115%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+.gl-gate__meter-txt {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  color: var(--color-dust-2);
+}
+
 .gl-gate__foot {
   position: absolute;
   left: 0;
@@ -784,6 +1057,89 @@ html.gl-locked {
   color: var(--color-amber);
   border-color: var(--color-amber);
 }
+
+/* 窄屏：收掉两侧 HUD，环缩小，别让界面挤成一团 */
+@media (max-width: 640px) {
+  .gl-gate {
+    padding: 4rem 1rem 5rem;
+  }
+  .gl-gate__hud--bl,
+  .gl-gate__hud--br {
+    display: none;
+  }
+  .gl-gate__hud--tl {
+    top: 1.4rem;
+    left: 1.4rem;
+    font-size: 8.5px;
+  }
+  .gl-gate__reticle {
+    width: 96vw;
+    opacity: 0.4;
+  }
+  .gl-gate__title {
+    font-size: clamp(3.2rem, 21vw, 5rem);
+  }
+  .gl-gate__id {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+  .gl-gate__log {
+    font-size: 11px;
+    min-height: 7.9rem;
+  }
+  .gl-gate__meter {
+    margin-top: 1.3rem;
+    width: min(260px, 84%);
+  }
+  .gl-gate__foot {
+    bottom: 1rem;
+    font-size: 8.5px;
+    gap: 0.35rem 0.9rem;
+  }
+  .gl-gate__frame {
+    inset: 0.7rem;
+  }
+  .gl-gate__skip {
+    top: 0.9rem;
+    right: 0.9rem;
+    padding: 0.3rem 0.55rem;
+    font-size: 10px;
+  }
+}
+
+/* 横屏手机 / 矮窗口：装饰让位，别把内容挤出屏幕 */
+@media (max-height: 640px) {
+  .gl-gate {
+    padding: 2.2rem 1rem 3rem;
+  }
+  .gl-gate__reticle {
+    display: none;
+  }
+  .gl-gate__title {
+    margin-top: 0.6rem;
+    font-size: clamp(2.4rem, 11vh, 4.4rem);
+  }
+  .gl-gate__motto {
+    margin-top: 0.6rem;
+  }
+  .gl-gate__id {
+    margin-top: 0.9rem;
+  }
+  .gl-gate__log {
+    margin-top: 0.9rem;
+    min-height: 0;
+  }
+  .gl-gate__prompt,
+  .gl-gate__meter {
+    margin-top: 0.8rem;
+  }
+  .gl-gate__hud--bl,
+  .gl-gate__hud--br,
+  .gl-gate__foot {
+    display: none;
+  }
+}
+
 
 /* 认证成功时的横向扫描线 */
 .gl-gate__wipe {
@@ -947,13 +1303,45 @@ a.term-row:hover {
   mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, #000 30%, transparent 100%);
 }
 
+/* 胶片噪点：压在最上面一层，让整页有「信号不干净」的质感 */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 260;
+  pointer-events: none;
+  opacity: 0.055;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  animation: grain-shift 0.9s steps(3) infinite;
+}
+@keyframes grain-shift {
+  0% {
+    background-position: 0 0;
+  }
+  33% {
+    background-position: -40px 24px;
+  }
+  66% {
+    background-position: 32px -18px;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .crt-sweep,
   .glitch::before,
   .glitch::after,
   .gl-flicker,
   .led,
-  .term-row__dot {
+  .term-row__dot,
+  .gl-gate__vscan,
+  .rt-r1,
+  .rt-r2,
+  .gl-gate__meter-bar i,
+  .grain {
     animation: none !important;
   }
   .gl-gate__prompt {

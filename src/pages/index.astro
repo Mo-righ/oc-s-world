@@ -37,8 +37,13 @@ const topFactions = factions.slice(0, 7);
     mark={t.mark ?? 'GLIMMER // INTERNAL DATABASE'}
     motto={d.motto ?? ''}
     prompt={t.prompt}
+    touchPrompt={t.touchPrompt}
     bootLines={t.bootLines}
     footnotes={t.footnotes}
+    operator={t.operator}
+    role={t.role}
+    clearance={t.clearance}
+    node={t.node}
   />
 
   <DataRain />
@@ -48,9 +53,13 @@ const topFactions = factions.slice(0, 7);
     <div class="term-bar rounded-md border border-edge bg-panel/70 backdrop-blur-sm">
       <span class="term-bar__dots"><i></i><i></i><i></i></span>
       <span class="truncate">{t.mark}</span>
-      <span class="ml-auto hidden items-center gap-2 sm:flex">
+      <span class="ml-auto flex items-center gap-2">
         <span class="led"></span>
-        {t.statusLine}
+        <span class="hidden sm:inline">{t.statusLine}</span>
+      </span>
+      <span class="hidden items-center gap-1.5 border-l border-edge pl-2.5 md:flex">
+        <span class="text-dust-2">OPERATOR</span>
+        <b class="font-medium tracking-[0.22em] text-amber">{t.operator ?? 'STARRY'}</b>
       </span>
       <span class="text-amber tabular-nums" id="gl-clock">--:--:--</span>
     </div>
@@ -241,7 +250,7 @@ const topFactions = factions.slice(0, 7);
       <div class="term-bar">
         <span class="term-bar__dots"><i></i><i></i><i></i></span>
         <span class="text-dust">briefing.md</span>
-        <span class="ml-auto hidden sm:inline">READ-ONLY</span>
+        <span class="ml-auto hidden sm:inline">{t.clearance ?? 'FULL ACCESS'}</span>
       </div>
       <div class="prose-oc max-w-none px-5 py-7 sm:px-8">
         <Content />

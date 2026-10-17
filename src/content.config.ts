@@ -186,6 +186,12 @@ const pages = defineCollection({
         accessCode: z.string().default('GL-0000'),
         statusLine: z.string().default('LINK STABLE'),
         prompt: z.string().default('按任意键进行身份认证'),
+        /** 触屏设备上显示的提示语（没有键盘，不能写「按任意键」） */
+        touchPrompt: z.string().default('轻触屏幕任意位置以继续'),
+        /** 访问者身份：名字 / 职位 / 权限，会出现在认证页与终端状态栏 */
+        operator: z.string().default('STARRY'),
+        role: z.string().default('创始人 · 创始序列 01'),
+        clearance: z.string().default('全库读写'),
         bootLines: z.array(z.string()).default([]),
         footnotes: z.array(z.string()).default([]),
       })

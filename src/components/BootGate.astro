@@ -9,8 +9,13 @@ interface Props {
   mark: string;
   motto: string;
   prompt?: string;
+  touchPrompt?: string;
   bootLines?: string[];
   footnotes?: string[];
+  operator?: string;
+  role?: string;
+  clearance?: string;
+  node?: string;
 }
 
 const {
@@ -18,8 +23,13 @@ const {
   mark,
   motto,
   prompt = '按任意键进行身份认证',
+  touchPrompt = '轻触屏幕任意位置以继续',
   bootLines = [],
   footnotes = [],
+  operator = 'STARRY',
+  role = '',
+  clearance = '',
+  node = 'NODE-07',
 } = Astro.props;
 ---
 
@@ -41,18 +51,63 @@ const {
 </script>
 
 <div class="gl-gate" id="gl-gate" role="dialog" aria-modal="true" aria-label="微光数据库身份认证">
-  <div class="gl-gate__scan"></div>
-  <span class="gl-gate__wipe"></span>
+  <!-- 底层装饰：点阵 + 扫描横纹 + 扫过竖线 -->
+  <div class="gl-gate__grid" aria-hidden="true"></div>
+  <div class="gl-gate__scan" aria-hidden="true"></div>
+  <div class="gl-gate__vscan" aria-hidden="true"></div>
+
+  <!-- 内框四角 -->
+  <div class="gl-gate__frame" aria-hidden="true">
+    <i></i><i></i><i></i><i></i>
+  </div>
+
+  <!-- 边角 HUD 读数 -->
+  <div class="gl-gate__hud gl-gate__hud--tl" aria-hidden="true">
+    <span>{node}</span>
+    <span>SESSION <b id="gl-sid">····</b></span>
+  </div>
+  <div class="gl-gate__hud gl-gate__hud--bl" aria-hidden="true">
+    <span>LAT 53.55N · LON 108.16E</span>
+    <span>PROTOCOL GLIMMER/2.7</span>
+  </div>
+  <div class="gl-gate__hud gl-gate__hud--br" aria-hidden="true">
+    <span>LOCAL TIME <b id="gl-gtime">--:--:--</b></span>
+    <span>BUILD GL-2610</span>
+  </div>
 
   <a class="gl-gate__skip" href="#main" id="gl-skip">跳过认证</a>
 
   <div class="gl-gate__inner">
-    <p class="gl-gate__mark">{mark}</p>
-    <h1 class="gl-gate__title glitch gl-flicker" data-text={name}>{name}</h1>
-    <p class="gl-gate__motto">{motto}</p>
+    <!-- 标题区：背后套一组同心环与刻度，缓慢反向旋转 -->
+    <div class="gl-gate__hero">
+      <div class="gl-gate__reticle" aria-hidden="true">
+        <i class="rt-r1"></i>
+        <i class="rt-r2"></i>
+        <i class="rt-r3"></i>
+        <b class="rt-c1"></b><b class="rt-c2"></b><b class="rt-c3"></b><b class="rt-c4"></b>
+      </div>
+
+      <p class="gl-gate__mark">{mark}</p>
+      <h1 class="gl-gate__title glitch gl-flicker" data-text={name}>{name}</h1>
+      <p class="gl-gate__motto">{motto}</p>
+    </div>
+
+    <!-- 访问者身份 -->
+    <div class="gl-gate__id">
+      <span class="gl-gate__id-k">OPERATOR</span>
+      <b class="gl-gate__id-n">{operator}</b>
+      {role && <span class="gl-gate__id-role">{role}</span>}
+      {clearance && <span class="gl-gate__id-clr">{clearance}</span>}
+    </div>
 
     <div class="gl-gate__log" id="gl-log" aria-live="polite"></div>
-    <p class="gl-gate__prompt" id="gl-prompt">{prompt}</p>
+    <p class="gl-gate__prompt" id="gl-prompt" data-touch={touchPrompt}>{prompt}</p>
+
+    <!-- 底部进度条：等待时来回扫，认证时按行推进 -->
+    <div class="gl-gate__meter">
+      <span class="gl-gate__meter-bar" id="gl-meter-bar" aria-hidden="true"><i id="gl-meter"></i></span>
+      <span class="gl-gate__meter-txt" id="gl-meter-txt" aria-hidden="true">AWAITING INPUT</span>
+    </div>
   </div>
 
   {
@@ -79,6 +134,9 @@ const {
     const log = document.getElementById('gl-log') as HTMLElement | null;
     const promptEl = document.getElementById('gl-prompt') as HTMLElement | null;
     const skip = document.getElementById('gl-skip') as HTMLElement | null;
+    const meterBar = document.getElementById('gl-meter-bar') as HTMLElement | null;
+    const meter = document.getElementById('gl-meter') as HTMLElement | null;
+    const meterTxt = document.getElementById('gl-meter-txt') as HTMLElement | null;
 
     // 已认证：直接移除，连监听都不挂
     if (root.classList.contains('gl-authed')) {
@@ -89,8 +147,34 @@ const {
       ).map((el) => el.textContent ?? '');
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+      // 触屏没有键盘，提示语要换掉，否则「按任意键」是死胡同
+      const coarse = window.matchMedia('(pointer: coarse)').matches;
+      const touchHint = promptEl?.dataset.touch;
+      if (coarse && promptEl && touchHint) {
+        promptEl.textContent = touchHint;
+      }
+
+      // 本次会话标识 + 本地时间，纯装饰，但让界面像真的有一台机器在跑
+      const sid = document.getElementById('gl-sid');
+      if (sid) {
+        sid.textContent = Array.from({ length: 6 }, () =>
+          '0123456789ABCDEF'[Math.floor(Math.random() * 16)]
+        ).join('');
+      }
+      const gtime = document.getElementById('gl-gtime');
+      if (gtime) {
+        const p2 = (v: number) => String(v).padStart(2, '0');
+        const t = new Date();
+        gtime.textContent = `${p2(t.getHours())}:${p2(t.getMinutes())}:${p2(t.getSeconds())}`;
+      }
+
       let started = false;
       let done = false;
+
+      const setProgress = (pct: number, label?: string) => {
+        if (meter) meter.style.width = `${pct}%`;
+        if (label && meterTxt) meterTxt.textContent = label;
+      };
 
       const finish = () => {
         if (done) return;
@@ -102,6 +186,7 @@ const {
         }
         root.classList.add('gl-authed');
         root.classList.remove('gl-locked');
+        setProgress(100, 'ACCESS GRANTED');
         gate.classList.add('is-wipe');
 
         window.setTimeout(() => {
@@ -143,16 +228,22 @@ const {
         started = true;
         if (promptEl) promptEl.style.visibility = 'hidden';
         if (log) log.innerHTML = '';
+        meterBar?.classList.add('is-live');
+        setProgress(6, 'AUTHENTICATING');
 
         const seq = lines.length ? lines : ['> 握手完成 OK'];
         let i = 0;
         const next = () => {
           if (i >= seq.length) {
+            setProgress(92, 'VERIFYING SIGNATURE');
             window.setTimeout(finish, reduced ? 0 : 420);
             return;
           }
           const line = seq[i++];
-          typeLine(line, () => window.setTimeout(next, reduced ? 0 : 160));
+          typeLine(line, () => {
+            setProgress(8 + (i / seq.length) * 78);
+            window.setTimeout(next, reduced ? 0 : 160);
+          });
         };
         next();
       };
