@@ -27,11 +27,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
-      # 有 lock 文件时用 ci（更快更稳）；lock 缺失或与 package.json 不一致时自动退回 install
+      # 有 package-lock.json 时用 npm ci（更快更稳），没有则退回 npm install
       - name: Install dependencies
-        run: npm ci || npm install --no-audit --no-fund
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "found package-lock.json -> npm ci"
+            npm ci
+          else
+            echo "no lock file -> npm install"
+            npm install --no-audit --no-fund
+          fi
 
       - name: Build site
         run: npm run build
