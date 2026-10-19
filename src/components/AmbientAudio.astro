@@ -21,6 +21,11 @@
     const STEP = 0.42; // 每步时长（秒）
     const BAR = 16; // 每 16 步换一次和弦
 
+    /** 总音量。觉得吵就把这个数字往小改，0.38 已经是很轻的背景音 */
+    const LEVEL = 0.38;
+    /** 母线上再切一刀高频，去掉刺耳的「嘶」声 */
+    const AIR_CUT = 2600;
+
     // Am - F - C - G，三个声部
     const CHORDS = [
       [55.0, 65.41, 82.41],
@@ -48,15 +53,22 @@
 
       master = ctx.createGain();
       master.gain.value = 0;
-      master.connect(ctx.destination);
+
+      // 母线低通：把高频毛刺削掉，听感从「噪」变「闷」
+      const airCut = ctx.createBiquadFilter();
+      airCut.type = 'lowpass';
+      airCut.frequency.value = AIR_CUT;
+      airCut.Q.value = 0.4;
+      master.connect(airCut);
+      airCut.connect(ctx.destination);
 
       // 用反馈延迟代替混响，做出「很远的空间」
       delay = ctx.createDelay(1);
-      delay.delayTime.value = 0.38;
+      delay.delayTime.value = 0.44;
       const fb = ctx.createGain();
-      fb.gain.value = 0.36;
+      fb.gain.value = 0.24;
       const wet = ctx.createGain();
-      wet.gain.value = 0.42;
+      wet.gain.value = 0.28;
       delay.connect(fb);
       fb.connect(delay);
       delay.connect(wet);
@@ -65,18 +77,19 @@
       // 铺底 pad
       const padFilter = ctx.createBiquadFilter();
       padFilter.type = 'lowpass';
-      padFilter.frequency.value = 540;
-      padFilter.Q.value = 4;
+      padFilter.frequency.value = 460;
+      padFilter.Q.value = 1.6;
 
       const padGain = ctx.createGain();
-      padGain.gain.value = 0.055;
+      padGain.gain.value = 0.042;
       padFilter.connect(padGain);
       padGain.connect(master);
       padGain.connect(delay);
 
       padOscs = [0, 1, 2].map((i) => {
         const o = ctx!.createOscillator();
-        o.type = i === 0 ? 'sine' : 'sawtooth';
+        // 全部用三角波：锯齿的谐波太多，压低音量也还是「毛」
+        o.type = 'triangle';
         o.frequency.value = CHORDS[0][i];
         o.detune.value = (i - 1) * 7;
         o.connect(padFilter);
@@ -93,7 +106,7 @@
       lfoAmt.connect(padFilter.frequency);
       lfo.start();
 
-      // 城市底噪：布朗噪声过低通，很闷的一层
+      // 城市底噪：布朗噪声压到极低，只留一点点空气
       const len = Math.floor(ctx.sampleRate * 2);
       const buf = ctx.createBuffer(1, len, ctx.sampleRate);
       const data = buf.getChannelData(0);
@@ -107,11 +120,11 @@
       noise.buffer = buf;
       noise.loop = true;
       const nf = ctx.createBiquadFilter();
-      nf.type = 'bandpass';
-      nf.frequency.value = 420;
-      nf.Q.value = 0.6;
+      nf.type = 'lowpass';
+      nf.frequency.value = 260;
+      nf.Q.value = 0.5;
       const ng = ctx.createGain();
-      ng.gain.value = 0.05;
+      ng.gain.value = 0.012;
       noise.connect(nf);
       nf.connect(ng);
       ng.connect(master);
@@ -127,21 +140,22 @@
         padOscs.forEach((o, k) => o.frequency.setTargetAtTime(chord[k], t, 2.2));
       }
 
-      // 稀疏琶音：留白比音符重要
-      if (Math.random() < 0.45) return;
+      // 稀疏琶音：留白比音符重要，六成以上的位置直接留空
+      if (Math.random() < 0.62) return;
 
       const o = ctx.createOscillator();
       const g = ctx.createGain();
       o.type = 'triangle';
       o.frequency.value = ARP[Math.floor(Math.random() * ARP.length)];
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.linearRampToValueAtTime(0.05, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+      g.gain.linearRampToValueAtTime(0.028, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
       o.connect(g);
       g.connect(master);
       g.connect(delay);
       o.start(t);
-      o.stop(t + 1.6);
+      // 必须在包络走完之后再停，否则尾巴被硬切会有「咔」的一声
+      o.stop(t + 2.5);
     };
 
     const start = async () => {
@@ -154,7 +168,7 @@
       }
       on = true;
       master.gain.cancelScheduledValues(ctx.currentTime);
-      master.gain.setTargetAtTime(0.9, ctx.currentTime, 0.9);
+      master.gain.setTargetAtTime(LEVEL, ctx.currentTime, 1.2);
 
       nextStep = ctx.currentTime + 0.15;
       step = 0;
