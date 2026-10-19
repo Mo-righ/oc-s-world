@@ -1,0 +1,225 @@
+---
+/**
+ * 背景音乐：暗色合成器氛围
+ * 全部用 Web Audio 实时合成 —— 不加载任何音频文件，没有版权问题，也不占带宽。
+ * 受浏览器自动播放策略限制，必须在一次用户操作之后才能出声，
+ * 所以第一次点击 / 按键时才起播（正好是认证那一下）。
+ */
+---
+
+<button class="bgm" id="bgm" type="button" aria-pressed="false" title="背景音乐开关">
+  <span class="bgm__bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  <span class="bgm__label" aria-hidden="true">BGM</span>
+  <span class="sr-only">背景音乐开关</span>
+</button>
+
+<script>
+  const btn = document.getElementById('bgm') as HTMLButtonElement | null;
+
+  if (btn) {
+    const KEY = 'gl-bgm';
+    const STEP = 0.42; // 每步时长（秒）
+    const BAR = 16; // 每 16 步换一次和弦
+
+    // Am - F - C - G，三个声部
+    const CHORDS = [
+      [55.0, 65.41, 82.41],
+      [43.65, 55.0, 65.41],
+      [32.7, 49.0, 65.41],
+      [49.0, 61.74, 73.42],
+    ];
+    // A 小调五声音阶，两个八度
+    const ARP = [220.0, 261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33];
+
+    let ctx: AudioContext | null = null;
+    let master: GainNode | null = null;
+    let delay: DelayNode | null = null;
+    let padOscs: OscillatorNode[] = [];
+    let nextStep = 0;
+    let step = 0;
+    let timer: number | undefined;
+    let on = false;
+
+    const build = () => {
+      const AC =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      ctx = new AC();
+
+      master = ctx.createGain();
+      master.gain.value = 0;
+      master.connect(ctx.destination);
+
+      // 用反馈延迟代替混响，做出「很远的空间」
+      delay = ctx.createDelay(1);
+      delay.delayTime.value = 0.38;
+      const fb = ctx.createGain();
+      fb.gain.value = 0.36;
+      const wet = ctx.createGain();
+      wet.gain.value = 0.42;
+      delay.connect(fb);
+      fb.connect(delay);
+      delay.connect(wet);
+      wet.connect(master);
+
+      // 铺底 pad
+      const padFilter = ctx.createBiquadFilter();
+      padFilter.type = 'lowpass';
+      padFilter.frequency.value = 540;
+      padFilter.Q.value = 4;
+
+      const padGain = ctx.createGain();
+      padGain.gain.value = 0.055;
+      padFilter.connect(padGain);
+      padGain.connect(master);
+      padGain.connect(delay);
+
+      padOscs = [0, 1, 2].map((i) => {
+        const o = ctx!.createOscillator();
+        o.type = i === 0 ? 'sine' : 'sawtooth';
+        o.frequency.value = CHORDS[0][i];
+        o.detune.value = (i - 1) * 7;
+        o.connect(padFilter);
+        o.start();
+        return o;
+      });
+
+      // 极慢的滤波器摆动，让 pad 有呼吸
+      const lfo = ctx.createOscillator();
+      lfo.frequency.value = 0.045;
+      const lfoAmt = ctx.createGain();
+      lfoAmt.gain.value = 190;
+      lfo.connect(lfoAmt);
+      lfoAmt.connect(padFilter.frequency);
+      lfo.start();
+
+      // 城市底噪：布朗噪声过低通，很闷的一层
+      const len = Math.floor(ctx.sampleRate * 2);
+      const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < len; i++) {
+        const white = Math.random() * 2 - 1;
+        last = (last + 0.02 * white) / 1.02;
+        data[i] = last * 3.2;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+      noise.loop = true;
+      const nf = ctx.createBiquadFilter();
+      nf.type = 'bandpass';
+      nf.frequency.value = 420;
+      nf.Q.value = 0.6;
+      const ng = ctx.createGain();
+      ng.gain.value = 0.05;
+      noise.connect(nf);
+      nf.connect(ng);
+      ng.connect(master);
+      noise.start();
+    };
+
+    const scheduleStep = (t: number, i: number) => {
+      if (!ctx || !master || !delay) return;
+
+      // 换和弦：慢滑，别跳
+      if (i % BAR === 0 && padOscs.length === 3) {
+        const chord = CHORDS[Math.floor(i / BAR) % CHORDS.length];
+        padOscs.forEach((o, k) => o.frequency.setTargetAtTime(chord[k], t, 2.2));
+      }
+
+      // 稀疏琶音：留白比音符重要
+      if (Math.random() < 0.45) return;
+
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'triangle';
+      o.frequency.value = ARP[Math.floor(Math.random() * ARP.length)];
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.05, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+      o.connect(g);
+      g.connect(master);
+      g.connect(delay);
+      o.start(t);
+      o.stop(t + 1.6);
+    };
+
+    const start = async () => {
+      if (!ctx) build();
+      if (!ctx || !master) return;
+      try {
+        await ctx.resume();
+      } catch {
+        /* 忽略 */
+      }
+      on = true;
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setTargetAtTime(0.9, ctx.currentTime, 0.9);
+
+      nextStep = ctx.currentTime + 0.15;
+      step = 0;
+      if (timer) window.clearInterval(timer);
+      timer = window.setInterval(() => {
+        if (!ctx) return;
+        while (nextStep < ctx.currentTime + 0.25) {
+          scheduleStep(nextStep, step);
+          nextStep += STEP;
+          step += 1;
+        }
+      }, 80);
+
+      btn.classList.add('is-on');
+      btn.setAttribute('aria-pressed', 'true');
+      try {
+        localStorage.setItem(KEY, '1');
+      } catch {
+        /* 忽略 */
+      }
+    };
+
+    const stop = () => {
+      on = false;
+      if (ctx && master) {
+        master.gain.cancelScheduledValues(ctx.currentTime);
+        master.gain.setTargetAtTime(0, ctx.currentTime, 0.4);
+      }
+      if (timer) {
+        window.clearInterval(timer);
+        timer = undefined;
+      }
+      btn.classList.remove('is-on');
+      btn.setAttribute('aria-pressed', 'false');
+      try {
+        localStorage.setItem(KEY, '0');
+      } catch {
+        /* 忽略 */
+      }
+    };
+
+    btn.addEventListener('click', () => (on ? stop() : start()));
+
+    // 第一次交互时自动起播；用户手动关过就不再自作主张
+    let remembered = '1';
+    try {
+      remembered = localStorage.getItem(KEY) ?? '1';
+    } catch {
+      /* 忽略 */
+    }
+    if (remembered !== '0') {
+      const arm = () => {
+        window.removeEventListener('pointerdown', arm);
+        window.removeEventListener('keydown', arm);
+        if (!on) void start();
+      };
+      window.addEventListener('pointerdown', arm, { once: true });
+      window.addEventListener('keydown', arm, { once: true });
+    }
+
+    // 切到后台就静音，省电也省耳朵
+    document.addEventListener('visibilitychange', () => {
+      if (!ctx) return;
+      if (document.hidden) void ctx.suspend();
+      else if (on) void ctx.resume();
+    });
+  }
+</script>

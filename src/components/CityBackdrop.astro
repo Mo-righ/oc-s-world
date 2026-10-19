@@ -1,0 +1,138 @@
+---
+/**
+ * 赛博朋克城市背景
+ *  - 底层：AI 生成的城市远景（本地 public/bg/，无外链）
+ *  - 中层：雾气带（缓慢横向漂移）
+ *  - 前景：CSS 生成的分层楼群剪影 + 霓虹窗格，滚动时做视差
+ * 全部 pointer-events: none，压在 z-index:-4，不会挡住任何内容。
+ */
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// 确定性伪随机（Park–Miller），保证每次构建出来的楼群完全一致
+let seed = 20261019;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+const NEON = ['#00e5ff', '#ff2e97', '#ffb020', '#b6ff3c'];
+
+interface Building {
+  x: number;
+  w: number;
+  h: number;
+  lit: { x: number; y: number; w: number; h: number; c: string }[];
+}
+
+const row = (width: number, hMin: number, hMax: number, wMin: number, wMax: number): Building[] => {
+  const out: Building[] = [];
+  let x = -30;
+  while (x < width + 30) {
+    const w = wMin + rnd() * (wMax - wMin);
+    const h = hMin + rnd() * (hMax - hMin);
+    const lit: Building['lit'] = [];
+    const cols = Math.max(1, Math.floor(w / 10));
+    const rows = Math.max(1, Math.floor(h / 15));
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        if (rnd() > 0.84) {
+          lit.push({
+            x: 5 + i * 10,
+            y: 8 + j * 15,
+            w: 3,
+            h: 4,
+            c: NEON[Math.floor(rnd() * NEON.length)],
+          });
+        }
+      }
+    }
+    out.push({ x, w, h, lit });
+    x += w + 3 + rnd() * 9;
+  }
+  return out;
+};
+
+const VB_W = 1440;
+const VB_H = 340;
+const far = row(VB_W, 70, 180, 24, 58);
+const near = row(VB_W, 120, 300, 34, 86);
+---
+
+<div
+  class="city-bg"
+  aria-hidden="true"
+  style={`--city:url('${base}/bg/city.jpg');--city-sm:url('${base}/bg/city-sm.jpg');`}
+>
+  <div class="city-bg__photo"></div>
+  <div class="city-bg__haze"></div>
+
+  <!-- 远景楼群：更淡、更矮，视差慢 -->
+  <div class="city-bg__layer city-bg__layer--far">
+    <svg viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="none">
+      {
+        far.map((b) => (
+          <g>
+            <rect x={b.x} y={VB_H - b.h} width={b.w} height={b.h} fill="#08080f" />
+            {b.lit.map((l) => (
+              <rect
+                x={b.x + l.x}
+                y={VB_H - b.h + l.y}
+                width={l.w}
+                height={l.h}
+                fill={l.c}
+                opacity="0.5"
+              />
+            ))}
+          </g>
+        ))
+      }
+    </svg>
+  </div>
+
+  <!-- 近景楼群：压到最暗，视差快 -->
+  <div class="city-bg__layer city-bg__layer--near">
+    <svg viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="none">
+      {
+        near.map((b) => (
+          <g>
+            <rect x={b.x} y={VB_H - b.h} width={b.w} height={b.h} fill="#04040a" />
+            {b.lit.map((l) => (
+              <rect
+                x={b.x + l.x}
+                y={VB_H - b.h + l.y}
+                width={l.w}
+                height={l.h}
+                fill={l.c}
+                opacity="0.75"
+              />
+            ))}
+          </g>
+        ))
+      }
+    </svg>
+  </div>
+
+  <div class="city-bg__grade"></div>
+</div>
+
+<script>
+  const bg = document.querySelector<HTMLElement>('.city-bg');
+  if (bg) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduced) {
+      let raf = 0;
+      const apply = () => {
+        raf = 0;
+        const y = window.scrollY || 0;
+        bg.style.setProperty('--city-p', String(y));
+        // 越往下滚，底部楼群越快让出画面，免得压住正文
+        bg.style.setProperty('--city-fade', String(Math.max(0, 1 - y / 520)));
+      };
+      window.addEventListener(
+        'scroll',
+        () => {
+          if (!raf) raf = requestAnimationFrame(apply);
+        },
+        { passive: true }
+      );
+      apply();
+    }
+  }
+</script>

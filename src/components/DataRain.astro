@@ -42,14 +42,16 @@
       drops = Array.from({ length: cols }, () => Math.random() * -h);
       speeds = Array.from({ length: cols }, () => 0.6 + Math.random() * 1.6);
 
-      ctx.fillStyle = '#0a0a0f';
-      ctx.fillRect(0, 0, w, h);
+      ctx.clearRect(0, 0, w, h);
     };
 
     const drawOnce = () => {
-      // 每一次「帧」：先蒙一层深色，制造拖尾
-      ctx.fillStyle = 'rgba(10,10,15,0.085)';
+      // 每一帧先「擦掉一点」而不是蒙深色，画布保持透明，
+      // 这样下面的城市背景能透上来，字符还保留拖尾
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0,0,0,0.10)';
       ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = 'source-over';
 
       for (let i = 0; i < cols; i++) {
         const x = i * FONT_SIZE * 1.15;
