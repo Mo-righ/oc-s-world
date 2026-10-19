@@ -1357,8 +1357,8 @@ a.term-row:hover {
   background-image: var(--city);
   background-size: cover;
   background-position: center 34%;
-  opacity: 0.5;
-  filter: saturate(0.92) contrast(1.06) brightness(0.95);
+  opacity: 0.7;
+  filter: saturate(0.95) contrast(1.08) brightness(1.05);
   transform: translate3d(0, calc(var(--city-p, 0) * 0.05px), 0);
   will-change: transform;
 }
@@ -1366,7 +1366,7 @@ a.term-row:hover {
   .city-bg__photo {
     background-image: var(--city-sm);
     background-position: center 30%;
-    opacity: 0.46;
+    opacity: 0.62;
   }
 }
 
@@ -1421,10 +1421,10 @@ a.term-row:hover {
   background:
     linear-gradient(
       180deg,
-      rgba(10, 10, 15, 0.88) 0%,
-      rgba(10, 10, 15, 0.52) 22%,
-      rgba(10, 10, 15, 0.68) 55%,
-      rgba(10, 10, 15, 0.9) 82%,
+      rgba(10, 10, 15, 0.82) 0%,
+      rgba(10, 10, 15, 0.38) 26%,
+      rgba(10, 10, 15, 0.54) 58%,
+      rgba(10, 10, 15, 0.8) 84%,
       #0a0a0f 100%
     );
 }
