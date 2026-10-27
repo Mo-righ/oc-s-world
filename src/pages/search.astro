@@ -94,6 +94,11 @@ const chips = [
       emptyLabel: '暂无档案',
     });
 
+    // 支持分享链接：/search?q=微光 打开时就带关键词
+    // （页面是静态构建的，构建时拿不到 query，必须在客户端读）
+    const qFromUrl = new URLSearchParams(location.search).get('q')?.trim();
+    if (qFromUrl) input.value = qFromUrl;
+
     controller.refresh();
 
     // 分类切换
