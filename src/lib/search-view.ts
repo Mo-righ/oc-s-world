@@ -98,13 +98,17 @@ export function snippetFor(item: SearchItem, words: string[]): string {
 
 /** 高亮命中词（已转义，可直接放进 innerHTML） */
 export function mark(text: string, words: string[]): string {
-  let out = escapeHtml(text);
-  for (const w of words) {
-    if (!w) continue;
-    const re = new RegExp(escapeRe(escapeHtml(w)), 'gi');
-    out = out.replace(re, (m) => `<mark class="sr-mark">${m}</mark>`);
-  }
-  return out;
+  const escaped = escapeHtml(text);
+  // 词先各自 escapeHtml，与 escaped 处于同一形态；去重去空；长词优先，避免短词抢占长词
+  const parts = [...new Set(words.filter(Boolean))]
+    .map((w) => escapeHtml(w))
+    .sort((a, b) => b.length - a.length)
+    .map((w) => escapeRe(w));
+  if (!parts.length) return escaped;
+  // 一次性扫描：单个正则从左到右只前进，已匹配的区域不会再次进入，
+  // 因此不存在「后一个词写进前一个词插入的 <mark> 标签内部」的嵌套破坏
+  const re = new RegExp(`(${parts.join('|')})`, 'gi');
+  return escaped.replace(re, (m) => `<mark class="sr-mark">${m}</mark>`);
 }
 
 export function itemHtml(item: SearchItem, words: string[], idx: number, active: boolean): string {
