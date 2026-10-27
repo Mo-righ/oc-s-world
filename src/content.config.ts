@@ -23,6 +23,8 @@ const characters = defineCollection({
     alias: z.string().optional(),
     /** 更多可被检索与自动内链匹配的别名 */
     aliases: z.array(z.string()).default([]),
+    /** 是否允许自动内链；false 时仍可用 [[词条]] 手动链接 */
+    autoLink: z.boolean().default(true),
     /** 一句话身份，例如「锈月下城的义体医师」 */
     title: z.string(),
     /** 所属组织 id（对应 src/content/factions 下的文件名） */
@@ -62,6 +64,8 @@ const factions = defineCollection({
     enName: z.string().optional(),
     /** 更多可被检索与自动内链匹配的别名 */
     aliases: z.array(z.string()).default([]),
+    /** 是否允许自动内链；false 时仍可用 [[词条]] 手动链接 */
+    autoLink: z.boolean().default(true),
     /** 官方 / 地下 / 中立 … */
     type: z.string().default('组织'),
     motto: z.string().optional(),
@@ -89,6 +93,8 @@ const locations = defineCollection({
     enName: z.string().optional(),
     /** 更多可被检索与自动内链匹配的别名 */
     aliases: z.array(z.string()).default([]),
+    /** 是否允许自动内链；false 时仍可用 [[词条]] 手动链接 */
+    autoLink: z.boolean().default(true),
     /** 所属区划 / 层级 */
     region: z.string().optional(),
     type: z.string().default('城市'),
@@ -116,6 +122,8 @@ const lore = defineCollection({
     enName: z.string().optional(),
     /** 更多可被检索与自动内链匹配的别名 */
     aliases: z.array(z.string()).default([]),
+    /** 是否允许自动内链；false 时仍可用 [[词条]] 手动链接 */
+    autoLink: z.boolean().default(true),
     /** 体系分类，例如「科技体系」「社会规则」「超常现象」 */
     category: z.string().default('体系'),
     accent: z.string().default('#b6ff3c'),
@@ -145,6 +153,8 @@ const timeline = defineCollection({
     title: z.string(),
     /** 更多可被检索与自动内链匹配的别名 */
     aliases: z.array(z.string()).default([]),
+    /** 是否允许自动内链；false 时仍可用 [[词条]] 手动链接 */
+    autoLink: z.boolean().default(true),
     /** 事件分类标签，例如「天灾」「政治」「科技」 */
     tag: z.string().default('事件'),
     accent: z.string().default('#00e5ff'),

@@ -28,14 +28,21 @@ export function stripMarkdown(md: string): string {
     .trim();
 }
 
-/** 构建索引：人物 / 势力 / 地点 / 体系 / 事件，五类合一 */
+/** pages 集合不是独立路由：这里明确指向它们实际所在的页面与锚点 */
+const PAGE_ROUTES: Record<string, { href: string; order: number }> = {
+  home: { href: '/', order: 10 },
+  'character-graph': { href: '/characters#relations', order: 20 },
+};
+
+/** 构建索引：人物 / 势力 / 地点 / 体系 / 事件 / 单页文案 */
 export async function buildSearchIndex(): Promise<SearchItem[]> {
-  const [characters, factions, locations, lore, timeline] = await Promise.all([
+  const [characters, factions, locations, lore, timeline, pages] = await Promise.all([
     getCollection('characters'),
     getCollection('factions'),
     getCollection('locations'),
     getCollection('lore'),
     getCollection('timeline'),
+    getCollection('pages'),
   ]);
 
   const items: SearchItem[] = [
@@ -109,6 +116,26 @@ export async function buildSearchIndex(): Promise<SearchItem[]> {
       c: t.data.accent,
       o: t.data.order,
     })),
+    ...pages.flatMap((p) => {
+      const route = PAGE_ROUTES[p.id];
+      if (!route) return [];
+      return [
+        {
+          t: p.data.title,
+          k: 'page' as const,
+          kl: KIND_INFO.page.label,
+          ki: KIND_INFO.page.icon,
+          u: url(route.href),
+          e: p.data.subtitle ?? '',
+          a: p.data.kicker ?? '',
+          s: p.data.description ?? '',
+          g: [] as string[],
+          x: stripMarkdown(p.body ?? '').slice(0, 420),
+          c: p.data.accent,
+          o: route.order,
+        },
+      ];
+    }),
   ];
 
   // 按类型分组、组内按 order 排序，保证结果顺序稳定

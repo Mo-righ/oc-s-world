@@ -1,6 +1,8 @@
 ---
 name: 异能
 enName: Esper Abilities
+# 避免把「异能者」「无异能」等更长表达截成链接；需要时手动写 [[异能]]
+autoLink: false
 category: 力量体系
 icon: ✷
 accent: '#8b5cf6'

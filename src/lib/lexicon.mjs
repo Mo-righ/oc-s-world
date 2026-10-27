@@ -129,6 +129,8 @@ function scan() {
         name,
         en,
         aliases,
+        // 词条级开关：false 时仍可手动 [[内链]]，但不参与自动替换
+        autoLink: fm.autoLink !== 'false' && fm.autoLink !== false,
         accent: fm.accent ? String(fm.accent) : '',
       };
       entries.push(entry);
@@ -176,6 +178,7 @@ export function loadLexicon() {
 export function buildMatcher(entries) {
   const terms = [];
   for (const e of entries) {
+    if (e.autoLink === false) continue;
     for (const t of [e.name, e.en, ...e.aliases]) {
       if (!t || t.length < 2) continue;
       const hasAscii = /[A-Za-z]/.test(t);

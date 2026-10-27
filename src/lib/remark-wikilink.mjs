@@ -60,7 +60,9 @@ export function remarkWikilink(options = {}) {
   let matcherCache = null;
 
   const getMatcher = (entries) => {
-    const sign = entries.map((e) => `${e.kind}:${e.id}:${e.name}:${e.en}:${e.aliases.join(',')}`).join('|');
+    const sign = entries
+      .map((e) => `${e.kind}:${e.id}:${e.name}:${e.en}:${e.aliases.join(',')}:${e.autoLink !== false}`)
+      .join('|');
     if (matcherCache && matcherCache.sign === sign) return matcherCache.matcher;
     const matcher = buildMatcher(entries);
     matcherCache = { sign, matcher };

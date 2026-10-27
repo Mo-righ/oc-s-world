@@ -16,7 +16,7 @@ import { url } from '../lib/site';
         id="oc-search-input"
         class="oc-search__input"
         type="text"
-        placeholder="检索人物 / 势力 / 地点 / 体系 / 事件…"
+        placeholder="检索档案与页面…"
         autocomplete="off"
         spellcheck="false"
         aria-label="检索关键词"
@@ -54,19 +54,24 @@ import { url } from '../lib/site';
 
   if (root && input && list) {
     let items: SearchItem[] = [];
-    let loading = false;
+    let status: 'idle' | 'loading' | 'ready' | 'error' = 'idle';
 
-    /** 索引只在第一次打开时才下载，之后一直复用 */
+    /** 成功后复用索引；失败后保留错误状态，下次打开时允许重试 */
     const ensure = async () => {
-      if (items.length || loading) return;
-      loading = true;
+      if (status === 'ready' || status === 'loading') return;
+      status = 'loading';
       try {
         const res = await fetch(INDEX_URL);
-        items = (await res.json()) as SearchItem[];
-      } catch {
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        const data: unknown = await res.json();
+        if (!Array.isArray(data)) throw new Error('search-index.json 不是数组');
+        items = data as SearchItem[];
+        status = 'ready';
+      } catch (error) {
         items = [];
+        status = 'error';
+        console.error('[档案检索] 索引加载失败', error);
       }
-      loading = false;
     };
 
     const controller = createSearchController({
@@ -76,10 +81,24 @@ import { url } from '../lib/site';
       meta: count,
       source: () => items,
       maxOnEmpty: 8,
-      emptyLabel: '索引加载中…',
+      emptyLabel: '暂无档案',
       onPick: (item) => {
         close();
         window.location.href = item.u;
+      },
+      onChange: (results, q) => {
+        if (q || results.length) return;
+        if (empty) {
+          empty.textContent =
+            status === 'loading'
+              ? '索引加载中…'
+              : status === 'error'
+                ? '索引加载失败，请关闭后重试；也可打开完整检索页'
+                : '暂无档案';
+        }
+        if (count) {
+          count.textContent = status === 'loading' ? '加载中' : status === 'error' ? '失败' : '0 条';
+        }
       },
     });
 
@@ -97,7 +116,9 @@ import { url } from '../lib/site';
       document.documentElement.classList.add('oc-searching');
       input.value = '';
       input.focus();
-      await ensure();
+      const pending = ensure();
+      controller.refresh();
+      await pending;
       controller.refresh();
     }
 
