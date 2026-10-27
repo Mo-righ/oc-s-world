@@ -28,7 +28,7 @@ export const KIND_META = {
     to: (id) => `/settings/locations/${id}`,
   },
   lore: { kind: 'system', label: '体系', icon: '⚙', to: (id) => `/settings/systems/${id}` },
-  timeline: { kind: 'event', label: '事件', icon: '⌛', to: () => `/settings#timeline` },
+  timeline: { kind: 'event', label: '事件', icon: '⌛', to: () => `/settings#history` },
 };
 
 /** 去掉首尾引号 */
