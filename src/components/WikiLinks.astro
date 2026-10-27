@@ -67,7 +67,7 @@ add(characters, 'character', '人物', '◉', (i) => `/characters/${i}`, (d) => 
 add(factions, 'faction', '势力', '◆', (i) => `/factions/${i}`, (d) => d.name, (d) => d.enName, (d) => d.aliases, (d) => d.accent);
 add(locations, 'location', '地点', '◈', (i) => `/settings/locations/${i}`, (d) => d.name, (d) => d.enName, (d) => d.aliases, (d) => d.accent);
 add(lore, 'system', '体系', '⚙', (i) => `/settings/systems/${i}`, (d) => d.name, (d) => d.enName, (d) => d.aliases, (d) => d.accent);
-add(timeline, 'event', '事件', '⌛', () => '/settings#timeline', (d) => d.title, (d) => d.date, (d) => d.aliases, (d) => d.accent);
+add(timeline, 'event', '事件', '⌛', () => '/settings#history', (d) => d.title, (d) => d.date, (d) => d.aliases, (d) => d.accent);
 
 const escapeRe = (s: string) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
