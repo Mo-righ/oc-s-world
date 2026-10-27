@@ -100,7 +100,7 @@ export async function buildSearchIndex(): Promise<SearchItem[]> {
       k: 'event' as const,
       kl: KIND_INFO.event.label,
       ki: KIND_INFO.event.icon,
-      u: url('/settings#timeline'),
+      u: url('/settings#history'),
       e: t.data.date,
       a: [t.data.era, ...t.data.aliases].filter(Boolean).join(' · '),
       s: t.data.summary,
