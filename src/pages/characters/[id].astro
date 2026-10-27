@@ -6,6 +6,7 @@ import SectionHeading from '../../components/SectionHeading.astro';
 import Mermaid from '../../components/Mermaid.astro';
 import Timeline from '../../components/Timeline.astro';
 import { byOrder, url } from '../../lib/site';
+import WikiLinks from '../../components/WikiLinks.astro';
 
 export const getStaticPaths = (async () => {
   const characters = await getCollection('characters');
@@ -29,7 +30,13 @@ const metaRows = [
 ].filter((r) => Boolean(r.v));
 ---
 
-<BaseLayout title={d.name} description={d.summary} kicker={d.enName ?? 'CHARACTER FILE'} accent={d.accent}>
+<BaseLayout
+  title={d.name}
+  description={d.summary}
+  kicker={d.enName ?? 'CHARACTER FILE'}
+  accent={d.accent}
+  wikiSelf={`character:${entry.id}`}
+>
   {
     d.sample && (
       <div
@@ -192,6 +199,9 @@ const metaRows = [
       </SectionHeading>
     )
   }
+
+  <!-- ============ 反向引用 ============ -->
+  <WikiLinks kind="character" id={entry.id} exclude={faction ? [`faction:${faction.id}`] : []} />
 
   <!-- ============ 返回 ============ -->
   <div class="mt-14 flex flex-wrap gap-3 border-t border-edge pt-6">

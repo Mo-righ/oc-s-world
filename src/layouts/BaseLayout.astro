@@ -7,6 +7,7 @@ import CrtLayer from '../components/CrtLayer.astro';
 import CityBackdrop from '../components/CityBackdrop.astro';
 import AmbientAudio from '../components/AmbientAudio.astro';
 import { SITE_TITLE, SITE_TITLE_EN, SITE_DESCRIPTION, url } from '../lib/site';
+import SearchDialog from '../components/SearchDialog.astro';
 
 interface Props {
   title?: string;
@@ -15,6 +16,8 @@ interface Props {
   kicker?: string;
   /** 由页面自己控制主内容区的宽度与内边距（首页终端用） */
   bare?: boolean;
+  /** 当前页面自身的词条标识（如 faction:glimmer），用于把指向自身的内链变回纯文本 */
+  wikiSelf?: string;
 }
 
 const {
@@ -23,6 +26,7 @@ const {
   accent = '#00e5ff',
   kicker = SITE_TITLE_EN,
   bare = false,
+  wikiSelf,
 } = Astro.props;
 
 const pageTitle = title ? `${title} · ${SITE_TITLE}` : `${SITE_TITLE} · 世界观档案`;
@@ -51,7 +55,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com
     <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
   </head>
 
-  <body>
+  <body data-wiki-self={wikiSelf}>
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[300] focus:rounded focus:border focus:border-neon focus:bg-void focus:px-4 focus:py-2 focus:text-neon"
@@ -89,6 +93,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com
     <FxCursor />
     <AmbientAudio />
 
+    {/* 全站检索浮层：Ctrl/⌘+K 或 / 唤起 */}
+    <SearchDialog />
+
     {/* 全屏遮罩类组件（开机认证等）必须放在 main 之外，否则会被 main 的
         stacking context 困住，z-index 再高也压不过 header */}
     <slot name="overlay" />
@@ -96,3 +103,18 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com
     <slot name="scripts" />
   </body>
 </html>
+
+<script>
+  // 指向当前页面自身的维基内链：变回纯文本（维基百科的惯例）
+  const self = document.body.dataset.wikiSelf;
+  if (self) {
+    document.querySelectorAll<HTMLAnchorElement>('a.wikilink[data-wiki]').forEach((a) => {
+      if (a.dataset.wiki === self) {
+        const span = document.createElement('span');
+        span.className = 'wikilink wikilink--self';
+        span.textContent = a.textContent;
+        a.replaceWith(span);
+      }
+    });
+  }
+</script>

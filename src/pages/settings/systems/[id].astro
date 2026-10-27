@@ -4,6 +4,7 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import SectionHeading from '../../../components/SectionHeading.astro';
 import { url } from '../../../lib/site';
+import WikiLinks from '../../../components/WikiLinks.astro';
 
 export const getStaticPaths = (async () => {
   const lore = await getCollection('lore');
@@ -15,7 +16,13 @@ const d = entry.data;
 const { Content } = await render(entry);
 ---
 
-<BaseLayout title={d.name} description={d.summary} kicker={d.enName ?? 'SYSTEM FILE'} accent={d.accent}>
+<BaseLayout
+  title={d.name}
+  description={d.summary}
+  kicker={d.enName ?? 'SYSTEM FILE'}
+  accent={d.accent}
+  wikiSelf={`system:${entry.id}`}
+>
   <header class="rise" style={`--accent:${d.accent}`}>
     <div class="flex flex-col gap-5 sm:flex-row sm:items-start">
       <div
@@ -66,6 +73,8 @@ const { Content } = await render(entry);
       </div>
     )
   }
+
+  <WikiLinks kind="system" id={entry.id} />
 
   <div class="mt-14 flex flex-wrap gap-3 border-t border-edge pt-6">
     <a href={url('/settings')} class="btn">← 返回设定总览</a>

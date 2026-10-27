@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
+import { remarkWikilink } from './src/lib/remark-wikilink.mjs';
 
 // 部署地址： https://mo-righ.github.io/oc-s-world/
 // 如果你 fork 到自己的账号下，只需改写 SITE / BASE 两个常量即可，其余逻辑会自动跟随。
@@ -20,6 +21,10 @@ export default defineConfig({
       theme: 'github-dark-default',
       wrap: true,
     },
+    remarkPlugins: [
+      // 维基式内链：正文里出现的已知词条名会自动链接到对应档案页
+      [remarkWikilink, { base: BASE, autoLink: true, maxPerPage: 1 }],
+    ],
   },
   vite: {
     plugins: [tailwindcss()],

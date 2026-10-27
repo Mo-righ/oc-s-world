@@ -7,6 +7,7 @@ import CharacterCard from '../../components/CharacterCard.astro';
 import Mermaid from '../../components/Mermaid.astro';
 import Timeline from '../../components/Timeline.astro';
 import { byOrder, url } from '../../lib/site';
+import WikiLinks from '../../components/WikiLinks.astro';
 
 export const getStaticPaths = (async () => {
   const factions = await getCollection('factions');
@@ -32,7 +33,13 @@ const metaRows = [
 ].filter((r) => Boolean(r.v));
 ---
 
-<BaseLayout title={d.name} description={d.summary} kicker={d.enName ?? 'FACTION FILE'} accent={d.accent}>
+<BaseLayout
+  title={d.name}
+  description={d.summary}
+  kicker={d.enName ?? 'FACTION FILE'}
+  accent={d.accent}
+  wikiSelf={`faction:${entry.id}`}
+>
   <!-- ============ 头部 ============ -->
   <header class="rise" style={`--accent:${d.accent}`}>
     <div class="flex flex-col gap-5 sm:flex-row sm:items-start">
@@ -164,6 +171,13 @@ const metaRows = [
       </SectionHeading>
     )
   }
+
+  <!-- ============ 反向引用 ============ -->
+  <WikiLinks
+    kind="faction"
+    id={entry.id}
+    exclude={[...members.map((m) => `character:${m.id}`), ...locations.map((l) => `location:${l.id}`)]}
+  />
 
   <div class="mt-14 flex flex-wrap gap-3 border-t border-edge pt-6">
     <a href={url('/factions')} class="btn">← 返回势力名录</a>

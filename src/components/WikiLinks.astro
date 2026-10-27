@@ -1,0 +1,124 @@
+---
+/**
+ * 反向引用（What links here）
+ * 展示「正文里提到本词条」的其它档案，形成维基式的互相跳转。
+ * 数据在构建时由 getCollection 计算，不读文件系统。
+ */
+import { getCollection } from 'astro:content';
+import { url } from '../lib/site';
+
+interface Props {
+  kind: 'character' | 'faction' | 'location' | 'system' | 'event';
+  id: string;
+  /** 需要排除的词条（比如本页已经单独展示过的名册成员） */
+  exclude?: string[];
+}
+
+const { kind, id, exclude = [] } = Astro.props;
+
+const [characters, factions, locations, lore, timeline] = await Promise.all([
+  getCollection('characters'),
+  getCollection('factions'),
+  getCollection('locations'),
+  getCollection('lore'),
+  getCollection('timeline'),
+]);
+
+interface Row {
+  key: string;
+  name: string;
+  en: string;
+  aliases: string[];
+  path: string;
+  kindLabel: string;
+  icon: string;
+  accent: string;
+  body: string;
+}
+
+const rows: Row[] = [];
+const add = (
+  coll: typeof characters,
+  kindName: string,
+  kindLabel: string,
+  icon: string,
+  to: (id: string) => string,
+  nameOf: (d: (typeof coll)[number]['data']) => string,
+  enOf: (d: (typeof coll)[number]['data']) => string | undefined,
+  aliasOf: (d: (typeof coll)[number]['data']) => string[],
+  accentOf: (d: (typeof coll)[number]['data']) => string
+) => {
+  for (const e of coll) {
+    rows.push({
+      key: `${kindName}:${e.id}`,
+      name: nameOf(e.data),
+      en: enOf(e.data) ?? '',
+      aliases: aliasOf(e.data),
+      path: to(e.id),
+      kindLabel,
+      icon,
+      accent: accentOf(e.data),
+      body: e.body ?? '',
+    });
+  }
+};
+
+add(characters, 'character', '人物', '◉', (i) => `/characters/${i}`, (d) => d.name, (d) => d.enName, (d) => [d.alias ?? '', ...d.aliases].filter(Boolean), (d) => d.accent);
+add(factions, 'faction', '势力', '◆', (i) => `/factions/${i}`, (d) => d.name, (d) => d.enName, (d) => d.aliases, (d) => d.accent);
+add(locations, 'location', '地点', '◈', (i) => `/settings/locations/${i}`, (d) => d.name, (d) => d.enName, (d) => d.aliases, (d) => d.accent);
+add(lore, 'system', '体系', '⚙', (i) => `/settings/systems/${i}`, (d) => d.name, (d) => d.enName, (d) => d.aliases, (d) => d.accent);
+add(timeline, 'event', '事件', '⌛', () => '/settings#timeline', (d) => d.title, (d) => d.date, (d) => d.aliases, (d) => d.accent);
+
+const escapeRe = (s: string) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const selfKey = `${kind}:${id}`;
+const skip = new Set([selfKey, ...exclude]);
+const selfRow = rows.find((r) => r.key === selfKey);
+
+// 本词条的所有称呼（名称 / 英文名 / 别名），至少两个字才算
+const terms = selfRow
+  ? [selfRow.name, selfRow.en, ...selfRow.aliases].filter((t) => t && t.length >= 2).map(escapeRe)
+  : [];
+
+// 谁的正文里出现了这些称呼，谁就是「引用本词条的档案」
+const back = terms.length
+  ? rows.filter((r) => {
+      if (skip.has(r.key) || !r.body) return false;
+      return terms.some((t) =>
+        /[A-Za-z]/.test(t) ? new RegExp(`\\b${t}\\b`, 'i').test(r.body) : r.body.includes(t)
+      );
+    })
+  : [];
+---
+
+{
+  back.length > 0 && (
+    <section class="mt-12 rise" aria-label="引用本词条的档案">
+      <div class="mb-4 flex items-baseline gap-3">
+        <h2 class="text-lg font-bold tracking-wide text-ink">
+          <span class="mr-2 font-mono text-dust-2">⟠</span>引用本词条的档案
+        </h2>
+        <span class="font-mono text-[9.5px] tracking-[0.24em] text-dust-2">WHAT LINKS HERE · {back.length}</span>
+      </div>
+      <div class="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+        {back.map((e) => (
+          <a
+            href={url(e.path)}
+            class="panel hoverable flex items-center gap-3 px-4 py-3"
+            style={`--accent:${e.accent || '#8b5cf6'}`}
+          >
+            <span class="font-mono text-lg" style={`color:${e.accent || '#8b5cf6'}`}>{e.icon}</span>
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-[14px] font-semibold text-ink">{e.name}</span>
+              <span class="mt-0.5 block font-mono text-[10px] tracking-[0.18em] text-dust-2">
+                {e.kindLabel}
+                {e.en ? ` · ${e.en}` : ''}
+              </span>
+            </span>
+            <span class="font-mono text-dust-2 transition-transform group-hover:translate-x-0.5">→</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )
+}

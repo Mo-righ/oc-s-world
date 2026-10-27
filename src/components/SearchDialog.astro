@@ -1,0 +1,138 @@
+---
+/**
+ * 全站检索浮层（Ctrl/⌘ + K 或 / 唤起）
+ * 索引按需拉取，只有第一次打开才会下载 search-index.json。
+ */
+import { url } from '../lib/site';
+---
+
+<div id="oc-search" class="oc-search" hidden>
+  <div class="oc-search__scrim" data-close></div>
+
+  <div class="oc-search__panel" role="dialog" aria-modal="true" aria-label="档案检索">
+    <div class="oc-search__head">
+      <span class="oc-search__icon" aria-hidden="true">⌕</span>
+      <input
+        id="oc-search-input"
+        class="oc-search__input"
+        type="text"
+        placeholder="检索人物 / 势力 / 地点 / 体系 / 事件…"
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="检索关键词"
+      />
+      <button id="oc-search-close" class="oc-search__x" type="button" aria-label="关闭检索">✕</button>
+    </div>
+
+    <div class="oc-search__bar">
+      <span id="oc-search-count" class="oc-search__count">—</span>
+      <span class="oc-search__tip">↑↓ 选择 · ↵ 打开 · Esc 关闭</span>
+    </div>
+
+    <ul id="oc-search-list" class="oc-search__list"></ul>
+    <p id="oc-search-empty" class="oc-search__empty" hidden></p>
+
+    <div class="oc-search__foot">
+      <span class="font-mono text-[10px] tracking-[0.2em] text-dust-2">GLIMMER · ARCHIVE QUERY</span>
+      <a href={url('/search')} class="oc-search__more">完整检索页 →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { createSearchController } from '../lib/search-view';
+  import type { SearchItem } from '../lib/search-types';
+
+  const BASE = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+  const INDEX_URL = `${BASE}/search-index.json`;
+
+  const root = document.getElementById('oc-search') as HTMLDivElement | null;
+  const input = document.getElementById('oc-search-input') as HTMLInputElement | null;
+  const list = document.getElementById('oc-search-list') as HTMLElement | null;
+  const empty = document.getElementById('oc-search-empty') as HTMLElement | null;
+  const count = document.getElementById('oc-search-count') as HTMLElement | null;
+
+  if (root && input && list) {
+    let items: SearchItem[] = [];
+    let loading = false;
+
+    /** 索引只在第一次打开时才下载，之后一直复用 */
+    const ensure = async () => {
+      if (items.length || loading) return;
+      loading = true;
+      try {
+        const res = await fetch(INDEX_URL);
+        items = (await res.json()) as SearchItem[];
+      } catch {
+        items = [];
+      }
+      loading = false;
+    };
+
+    const controller = createSearchController({
+      input,
+      list,
+      empty,
+      meta: count,
+      source: () => items,
+      maxOnEmpty: 8,
+      emptyLabel: '索引加载中…',
+      onPick: (item) => {
+        close();
+        window.location.href = item.u;
+      },
+    });
+
+    const isOpen = () => !root.hidden;
+
+    function close() {
+      if (!root || !isOpen()) return;
+      root.hidden = true;
+      document.documentElement.classList.remove('oc-searching');
+    }
+
+    async function open() {
+      if (!root || !input) return;
+      root.hidden = false;
+      document.documentElement.classList.add('oc-searching');
+      input.value = '';
+      input.focus();
+      await ensure();
+      controller.refresh();
+    }
+
+    // 导航栏 / 任意位置的检索按钮
+    document.querySelectorAll('[data-search-open]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        isOpen() ? close() : open();
+      });
+    });
+
+    root.querySelector('[data-close]')?.addEventListener('click', close);
+    document.getElementById('oc-search-close')?.addEventListener('click', close);
+
+    document.addEventListener('keydown', (e) => {
+      const locked = document.documentElement.classList.contains('gl-locked');
+
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (!locked) isOpen() ? close() : open();
+        return;
+      }
+      if (e.key === 'Escape' && isOpen()) {
+        e.preventDefault();
+        close();
+        return;
+      }
+      // 斜杠快捷键：在输入框里打字时不触发
+      if (e.key === '/' && !locked && !isOpen()) {
+        const t = e.target as HTMLElement | null;
+        const tag = (t?.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || t?.isContentEditable) return;
+        e.preventDefault();
+        open();
+      }
+    });
+  }
+</script>

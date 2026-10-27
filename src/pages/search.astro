@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildSearchIndex } from '../lib/search-index';
+import { KIND_INFO, KIND_ORDER } from '../lib/search-types';
+import { url } from '../lib/site';
+
+// 构建时直接把索引内联进页面：打开即可搜索，不依赖网络请求
+const items = await buildSearchIndex();
+const initialQ = (Astro.url.searchParams.get('q') ?? '').trim();
+// < 转义，防止正文里出现 </script> 破坏页面
+const indexJson = JSON.stringify(items).replace(/</g, '\\u003c');
+
+const chips = [
+  { k: 'all', label: '全部', icon: '≡' },
+  ...KIND_ORDER.map((k) => ({ k, label: KIND_INFO[k].label, icon: KIND_INFO[k].icon })),
+] as const;
+---
+
+<BaseLayout title="档案检索" kicker="ARCHIVE QUERY" accent="#00e5ff">
+  <script is:inline type="application/json" id="oc-index-data" set:html={indexJson} />
+
+  <header class="rise">
+    <h1 class="text-3xl font-black tracking-tight text-ink sm:text-4xl">档案检索</h1>
+    <p class="mt-3 max-w-2xl text-[14.5px] leading-relaxed text-dust">
+      在全部人物、势力、地点、体系与事件档案中查找。支持名称、别名、英文名、标签与正文内容，
+      多个关键词用空格分隔（需同时命中）。
+    </p>
+  </header>
+
+  <div class="mt-8 rise" style="animation-delay:.08s">
+    <label class="sr-page__box">
+      <span class="sr-page__icon" aria-hidden="true">⌕</span>
+      <input
+        id="sr-input"
+        class="sr-page__input"
+        type="text"
+        placeholder="输入关键词，例如：微光 UOSC 污染"
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="检索关键词"
+        value={initialQ}
+      />
+      <span id="sr-count" class="sr-page__count">—</span>
+    </label>
+
+    <div class="mt-4 flex flex-wrap gap-2" id="sr-chips">
+      {
+        chips.map((c) => (
+          <button
+            class="sr-chip"
+            type="button"
+            data-kind={c.k}
+            aria-pressed={c.k === 'all' ? 'true' : 'false'}
+          >
+            <span class="sr-chip__icon">{c.icon}</span>
+            {c.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <ul id="sr-list" class="sr-page__list mt-6" aria-label="检索结果"></ul>
+  <p id="sr-empty" class="sr-page__empty" hidden></p>
+
+  <div class="mt-10 flex flex-wrap gap-3 border-t border-edge pt-6">
+    <a href={url('/')} class="btn">← 返回终端</a>
+  </div>
+</BaseLayout>
+
+<script>
+  import { createSearchController } from '../lib/search-view';
+  import type { SearchItem, SearchKind } from '../lib/search-types';
+
+  const dataEl = document.getElementById('oc-index-data');
+  const items: SearchItem[] = dataEl ? JSON.parse(dataEl.textContent || '[]') : [];
+
+  const input = document.getElementById('sr-input') as HTMLInputElement | null;
+  const list = document.getElementById('sr-list') as HTMLElement | null;
+  const empty = document.getElementById('sr-empty') as HTMLElement | null;
+  const count = document.getElementById('sr-count') as HTMLElement | null;
+  const chips = document.getElementById('sr-chips');
+
+  if (input && list) {
+    let kind: SearchKind | 'all' = 'all';
+
+    const controller = createSearchController({
+      input,
+      list,
+      empty,
+      meta: count,
+      source: () => items,
+      kind: () => kind,
+      emptyLabel: '暂无档案',
+    });
+
+    controller.refresh();
+
+    // 分类切换
+    chips?.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.sr-chip');
+      if (!btn) return;
+      kind = (btn.dataset.kind as SearchKind | 'all') || 'all';
+      chips.querySelectorAll('.sr-chip').forEach((el) => {
+        const active = el === btn;
+        el.setAttribute('aria-pressed', String(active));
+        el.classList.toggle('is-on', active);
+      });
+      controller.rerender();
+    });
+
+    // 地址栏同步：方便分享/收藏某个搜索结果
+    input.addEventListener('input', () => {
+      const q = input.value.trim();
+      const p = new URLSearchParams(location.search);
+      if (q) p.set('q', q);
+      else p.delete('q');
+      history.replaceState(null, '', `${location.pathname}${p.toString() ? `?${p}` : ''}`);
+    });
+
+    if (input.value.trim()) input.focus();
+  }
+</script>

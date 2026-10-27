@@ -59,13 +59,38 @@ const current = Astro.url.pathname;
           );
         })
       }
+
+      <!-- 桌面检索按钮 -->
+      <li class="ml-2">
+        <button
+          data-search-open
+          type="button"
+          class="nav-search group flex items-center gap-1.5 rounded border border-edge bg-panel/60 px-2.5 py-1.5 font-mono text-[12px] tracking-wider text-dust transition-colors hover:border-neon/60 hover:text-neon"
+          aria-label="打开档案检索"
+          title="档案检索（Ctrl/⌘ + K 或 /）"
+        >
+          <span class="text-[13px] leading-none">⌕</span>
+          <span class="hidden lg:inline">检索</span>
+          <kbd class="nav-search__kbd hidden lg:inline">⌘K</kbd>
+        </button>
+      </li>
     </ul>
+
+    <!-- 移动端检索按钮 -->
+    <button
+      data-search-open
+      type="button"
+      class="ml-auto grid h-9 w-9 place-items-center rounded border border-edge text-dust transition-colors hover:border-neon hover:text-neon sm:hidden"
+      aria-label="打开档案检索"
+    >
+      <span class="text-[15px] leading-none">⌕</span>
+    </button>
 
     <!-- 移动端菜单按钮 -->
     <button
       id="oc-nav-toggle"
       type="button"
-      class="ml-auto grid h-9 w-9 place-items-center rounded border border-edge text-dust transition-colors hover:border-neon hover:text-neon sm:hidden"
+      class="ml-1.5 grid h-9 w-9 place-items-center rounded border border-edge text-dust transition-colors hover:border-neon hover:text-neon sm:hidden"
       aria-controls="oc-nav-mobile"
       aria-expanded="false"
       aria-label="打开导航菜单"
@@ -76,6 +101,16 @@ const current = Astro.url.pathname;
 
   <!-- 移动端下拉 -->
   <ul id="oc-nav-mobile" class="hidden border-t border-edge bg-void-2/95 px-5 py-2 sm:hidden">
+    <li>
+      <button
+        data-search-open
+        type="button"
+        class="flex w-full items-center justify-between border-b border-edge/60 py-3 font-mono text-sm text-dust"
+      >
+        <span>档案检索</span>
+        <span class="text-[10px] tracking-[0.2em] text-dust-2">QUERY</span>
+      </button>
+    </li>
     {
       items.map((it) => {
         const active = isActive(current, it.href);

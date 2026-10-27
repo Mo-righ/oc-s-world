@@ -5,6 +5,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import SectionHeading from '../../../components/SectionHeading.astro';
 import Timeline from '../../../components/Timeline.astro';
 import { url } from '../../../lib/site';
+import WikiLinks from '../../../components/WikiLinks.astro';
 
 export const getStaticPaths = (async () => {
   const locations = await getCollection('locations');
@@ -27,7 +28,13 @@ const metaRows = [
 ].filter((r) => Boolean(r.v));
 ---
 
-<BaseLayout title={d.name} description={d.summary} kicker={d.enName ?? 'LOCATION FILE'} accent={d.accent}>
+<BaseLayout
+  title={d.name}
+  description={d.summary}
+  kicker={d.enName ?? 'LOCATION FILE'}
+  accent={d.accent}
+  wikiSelf={`location:${entry.id}`}
+>
   <header class="rise" style={`--accent:${d.accent}`}>
     <div class="flex flex-col gap-5 sm:flex-row sm:items-start">
       <div
@@ -126,6 +133,12 @@ const metaRows = [
       </SectionHeading>
     )
   }
+
+  <WikiLinks
+    kind="location"
+    id={entry.id}
+    exclude={[...factions.map((f) => `faction:${f.id}`), ...characters.map((c) => `character:${c.id}`)]}
+  />
 
   <div class="mt-14 flex flex-wrap gap-3 border-t border-edge pt-6">
     <a href={url('/settings')} class="btn">← 返回设定总览</a>
