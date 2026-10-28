@@ -1,0 +1,167 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import Timeline from '../../components/Timeline.astro';
+import WikiLinks from '../../components/WikiLinks.astro';
+import { url } from '../../lib/site';
+
+export const getStaticPaths = (async () => {
+  const items = await getCollection('items');
+  return items.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+const metaRows = [
+  { k: '持有者', v: d.owner },
+  { k: '所在地', v: d.location },
+  { k: '状态', v: d.status },
+].filter((r) => Boolean(r.v));
+---
+
+<BaseLayout
+  title={d.name}
+  description={d.summary}
+  kicker={d.enName ?? 'ITEM FILE'}
+  accent={d.accent}
+  wikiSelf={`item:${entry.id}`}
+>
+  {
+    d.sample && (
+      <div
+        class="mb-8 flex items-start gap-3 rounded-lg border px-4 py-3"
+        style="border-color:#ffb02055;background:#ffb0200f"
+      >
+        <span class="mt-0.5 font-mono text-sm text-amber">!</span>
+        <p class="text-[13px] leading-relaxed text-dust">
+          <span class="font-semibold text-amber">这是示例条目。</span>
+          它只用来演示物品页排版。复制
+          <code class="text-neon">src/content/items/{entry.id}.md</code>
+          改写即可；不需要时直接删除该文件。
+        </p>
+      </div>
+    )
+  }
+
+  <header class="rise" style={`--accent:${d.accent}`}>
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-start">
+      <div
+        class="grid h-20 w-20 shrink-0 place-items-center rounded-xl border text-4xl"
+        style={`border-color:${d.accent}55;color:${d.accent};background:radial-gradient(circle at 30% 20%, ${d.accent}26, transparent 70%), #0e0e18;box-shadow:0 0 40px -18px ${d.accent}`}
+      >
+        {d.icon}
+      </div>
+
+      <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 class="text-3xl font-black tracking-tight text-ink sm:text-4xl">{d.name}</h1>
+          <span class="chip" style={`color:${d.accent};border-color:${d.accent}55`}>{d.type}</span>
+          {d.status && <span class="chip">{d.status}</span>}
+        </div>
+        {d.enName && <p class="mt-1 font-mono text-[11px] tracking-[0.22em] text-dust-2">{d.enName}</p>}
+        <p class="mt-3 max-w-2xl text-[14.5px] leading-relaxed text-dust">{d.summary}</p>
+      </div>
+    </div>
+  </header>
+
+  {
+    metaRows.length > 0 && (
+      <dl
+        class="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-edge bg-edge/60 sm:grid-cols-3"
+      >
+        {metaRows.map((r) => (
+          <div class="bg-panel px-4 py-3">
+            <dt class="font-mono text-[10px] tracking-[0.2em] text-dust-2">{r.k}</dt>
+            <dd class="mt-1 truncate text-[13.5px] text-ink">{r.v}</dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
+
+  {
+    d.specs.length > 0 && (
+      <SectionHeading title="规格参数" en="SPECIFICATIONS" icon="⌗" accent={d.accent} id="specs">
+        <dl class="grid gap-px overflow-hidden rounded-lg border border-edge bg-edge/60 sm:grid-cols-2">
+          {d.specs.map((s) => (
+            <div class="bg-panel px-4 py-3">
+              <dt class="font-mono text-[10px] tracking-[0.18em]" style={`color:${d.accent}`}>
+                {s.key}
+              </dt>
+              <dd class="mt-1 text-[13.5px] leading-relaxed text-ink/90">{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </SectionHeading>
+    )
+  }
+
+  <div class="prose-oc mt-10">
+    <Content />
+  </div>
+
+  {
+    d.tags.length > 0 && (
+      <div class="mt-8 flex flex-wrap gap-1.5">
+        {d.tags.map((t) => (
+          <span class="chip">{t}</span>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    (d.relatedCharacters.length > 0 || d.relatedFactions.length > 0) && (
+      <SectionHeading title="关联档案" en="RELATED" icon="⇄" accent={d.accent} id="related">
+        <div class="grid gap-4 sm:grid-cols-2">
+          {d.relatedCharacters.length > 0 && (
+            <div class="panel px-4 py-3.5">
+              <p class="font-mono text-[10px] tracking-[0.2em] text-dust-2">CHARACTER / 相关人物</p>
+              <ul class="mt-2 flex flex-wrap gap-1.5">
+                {d.relatedCharacters.map((c) => (
+                  <li class="chip" style="color:#b6ff3c;border-color:#b6ff3c44">{c}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {d.relatedFactions.length > 0 && (
+            <div class="panel px-4 py-3.5">
+              <p class="font-mono text-[10px] tracking-[0.2em] text-dust-2">FACTION / 相关势力</p>
+              <ul class="mt-2 flex flex-wrap gap-1.5">
+                {d.relatedFactions.map((f) => (
+                  <li class="chip" style="color:#ff2e97;border-color:#ff2e9744">{f}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </SectionHeading>
+    )
+  }
+
+  {
+    d.events.length > 0 && (
+      <SectionHeading title="流转经历" en="TIMELINE" icon="⌛" accent={d.accent} id="timeline">
+        <Timeline
+          items={d.events.map((e) => ({
+            time: e.time,
+            title: e.title,
+            desc: e.desc,
+            accent: d.accent,
+          }))}
+        />
+      </SectionHeading>
+    )
+  }
+
+  <WikiLinks kind="item" id={entry.id} />
+
+  <div class="mt-14 flex flex-wrap gap-3 border-t border-edge pt-6">
+    <a href={url('/items')} class="btn">← 返回物品清单</a>
+    <a href={url('/search')} class="btn">打开档案检索</a>
+  </div>
+</BaseLayout>

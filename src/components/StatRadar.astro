@@ -1,0 +1,107 @@
+---
+/**
+ * 六维能力雷达图
+ * ------------------------------------------------------------------
+ * 六个顶点：技巧 / 能力 / 身体素质 / 污染抗性 / 机动 / 幸运。
+ * 外六边形 = 100 分；图上只显示等级（D/C/B/A/S/S+），不显示具体数值。
+ * 数值超过 100 时，对应顶点会画到外六边形之外，表示 S+。
+ * compact = true 是名册卡片上的小图：不画轴名，只保留等级字母。
+ */
+import {
+  RADAR_AXES,
+  RADAR_FULL_MAX,
+  RADAR_RING_RATIOS,
+  radarGeometry,
+  radarLabelPosition,
+  radarRingPoints,
+  radarRows,
+  radarSummary,
+  toPolygon,
+} from '../lib/radar';
+import type { RadarStats } from '../lib/radar';
+
+interface Props {
+  stats?: RadarStats | null;
+  accent?: string;
+  compact?: boolean;
+}
+
+const { stats = null, accent = '#00e5ff', compact = false } = Astro.props;
+
+const baseRows = radarRows(stats);
+// 未登记时用占位等级，避免把没有数据的角色显示成全 D
+const missing = !stats || Object.keys(stats).length === 0;
+const rows = missing ? baseRows.map((row) => ({ ...row, grade: '—' as const })) : baseRows;
+const total = RADAR_AXES.length;
+
+// 小图与大图共用一套计算，只是画布尺寸不同
+const cx = compact ? 80 : 200;
+const cy = compact ? 76 : 175;
+const outerRadius = compact ? 46 : 95;
+const labelRadius = outerRadius + (compact ? 18 : 34);
+const geometryOptions = { cx, cy, outerRadius };
+
+const geometry = radarGeometry(
+  rows.map((r) => r.value),
+  geometryOptions
+);
+const areaPoints = toPolygon(geometry);
+const rings = RADAR_RING_RATIOS.map((ratio) => toPolygon(radarRingPoints(ratio, total, geometryOptions)));
+
+const dots = geometry.map((p, index) => ({
+  x: p.x,
+  y: p.y,
+  grade: rows[index].grade,
+  over: rows[index].value > RADAR_FULL_MAX,
+}));
+
+const labels = rows.map((row, index) => ({
+  ...row,
+  ...radarLabelPosition(index, total, labelRadius, geometryOptions),
+}));
+
+const ariaLabel = `六维评级：${radarSummary(rows)}`;
+---
+
+<div class:list={['radar', compact && 'radar--mini']} style={`--radar-accent:${accent}`}>
+  <svg
+    class:list={['radar__svg', compact && 'radar__svg--mini']}
+    viewBox={compact ? '0 0 160 160' : '0 0 400 350'}
+    role="img"
+    aria-label={ariaLabel}
+  >
+    <g class="radar__grid">
+      {
+        rings.map((points, index) => (
+          <polygon
+            class:list={['radar__ring', index === rings.length - 1 && 'radar__ring--outer']}
+            points={points}
+          />
+        ))
+      }
+      {geometry.map((p) => <line class="radar__spoke" x1={cx} y1={cy} x2={p.outerX} y2={p.outerY} />)}
+    </g>
+
+    <polygon class="radar__area" points={areaPoints} />
+
+    {
+      dots.map((d) => (
+        <circle
+          class:list={['radar__dot', d.over && 'radar__dot--over']}
+          cx={d.x}
+          cy={d.y}
+          r={compact ? 2 : 3.4}
+        />
+      ))
+    }
+
+    {
+      labels.map((l) => (
+        <text class="radar__label" x={l.x} y={l.y} text-anchor={l.anchor}>
+          {!compact && <tspan>{l.key}</tspan>}
+          <tspan class="radar__grade" data-g={l.grade} dx={compact ? 0 : 6}>{l.grade}</tspan>
+        </text>
+      ))
+    }
+  </svg>
+</div>

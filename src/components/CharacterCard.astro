@@ -1,5 +1,7 @@
 ---
 import { url } from '../lib/site';
+import StatRadar from './StatRadar.astro';
+import type { RadarStats } from '../lib/radar';
 
 interface Props {
   id: string;
@@ -13,6 +15,7 @@ interface Props {
   accent?: string;
   tags?: string[];
   summary: string;
+  radar?: RadarStats;
 }
 
 const {
@@ -27,6 +30,7 @@ const {
   accent = '#00e5ff',
   tags = [],
   summary,
+  radar,
 } = Astro.props;
 
 // avatar 既可以是 emoji，也可以是 public/ 下的图片路径（含扩展名时按图片渲染）
@@ -64,6 +68,19 @@ const avatarIsImg = /\.(png|jpe?g|webp|svg|gif|avif)$/i.test(avatar ?? '');
     {factionLabel && <span class="chip" style={`color:${accent};border-color:${accent}44`}>{factionLabel}</span>}
     {tags.slice(0, 3).map((t) => <span class="chip">{t}</span>)}
   </div>
+
+  {
+    radar && (
+      <div class="mt-4 flex items-center gap-3 border-t border-edge/70 pt-3">
+        <StatRadar stats={radar} accent={accent} compact />
+        <p class="font-mono text-[10px] leading-relaxed tracking-[0.18em] text-dust-2">
+          CAPACITY RADAR
+          <br />
+          六维评级：智慧 / 能力 / 身体素质 / 污染抗性 / 机动 / 幸运
+        </p>
+      </div>
+    )
+  }
 
   <div class="mt-5 flex items-center justify-between border-t border-edge/70 pt-3">
     <span class="font-mono text-[10px] tracking-[0.18em] text-dust-2">

@@ -1,0 +1,111 @@
+{
+  "$ref": "#/definitions/locations",
+  "definitions": {
+    "locations": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "enName": {
+          "type": "string"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "autoLink": {
+          "type": "boolean",
+          "default": true
+        },
+        "region": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "default": "城市"
+        },
+        "climate": {
+          "type": "string"
+        },
+        "population": {
+          "type": "string"
+        },
+        "danger": {
+          "type": "string"
+        },
+        "accent": {
+          "type": "string",
+          "default": "#8b5cf6"
+        },
+        "icon": {
+          "type": "string",
+          "default": "◈"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "summary": {
+          "type": "string"
+        },
+        "characters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "factions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "desc": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "time",
+              "title"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "order": {
+          "type": "number",
+          "default": 999
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "summary"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

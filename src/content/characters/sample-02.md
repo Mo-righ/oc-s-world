@@ -36,6 +36,13 @@ relations: |
     classDef sub fill:#12121d,stroke:#33334f,color:#c9cfe4
     class B main
     class A,C,G,U sub
+radar:
+  智慧: 45
+  能力: 30
+  身体素质: 78
+  污染抗性: 105
+  机动: 52
+  幸运: 18
 events:
   - time: 请填时间
     title: 加入微光

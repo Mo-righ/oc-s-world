@@ -1,0 +1,177 @@
+{
+  "$ref": "#/definitions/characters",
+  "definitions": {
+    "characters": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "enName": {
+          "type": "string"
+        },
+        "alias": {
+          "type": "string"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "autoLink": {
+          "type": "boolean",
+          "default": true
+        },
+        "title": {
+          "type": "string"
+        },
+        "faction": {
+          "type": "string"
+        },
+        "factionLabel": {
+          "type": "string"
+        },
+        "age": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "gender": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string",
+          "default": "🜲"
+        },
+        "accent": {
+          "type": "string",
+          "default": "#00e5ff"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "quote": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "allies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "rivals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "relations": {
+          "type": "string"
+        },
+        "radar": {
+          "type": "object",
+          "properties": {
+            "智慧": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0
+            },
+            "能力": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0
+            },
+            "身体素质": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0
+            },
+            "污染抗性": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0
+            },
+            "机动": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0
+            },
+            "幸运": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "desc": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "time",
+              "title"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "sample": {
+          "type": "boolean",
+          "default": false
+        },
+        "order": {
+          "type": "number",
+          "default": 999
+        },
+        "featured": {
+          "type": "boolean",
+          "default": false
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "title",
+        "summary"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

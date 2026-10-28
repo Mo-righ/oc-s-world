@@ -1,0 +1,82 @@
+{
+  "$ref": "#/definitions/lore",
+  "definitions": {
+    "lore": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "enName": {
+          "type": "string"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "autoLink": {
+          "type": "boolean",
+          "default": true
+        },
+        "category": {
+          "type": "string",
+          "default": "体系"
+        },
+        "accent": {
+          "type": "string",
+          "default": "#b6ff3c"
+        },
+        "icon": {
+          "type": "string",
+          "default": "⚙"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "summary": {
+          "type": "string"
+        },
+        "terms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "order": {
+          "type": "number",
+          "default": 999
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "summary"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

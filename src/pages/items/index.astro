@@ -1,0 +1,91 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import { byOrder, url } from '../../lib/site';
+
+const allItems = (await getCollection('items')).sort(byOrder);
+---
+
+<BaseLayout
+  title="物品档案"
+  description="星陨纪界的物品、装备与资料档案。"
+  kicker="ITEM ARCHIVE"
+  accent="#ffb020"
+>
+  <header class="rise">
+    <h1 class="text-3xl font-black tracking-tight text-ink sm:text-4xl">物品档案</h1>
+    <p class="mt-3 max-w-2xl text-[14.5px] leading-relaxed text-dust">
+      装备、资料、消耗品，以及那些说不清来源的特殊物件。新增一个 .md 文件，这里就会多一张卡片。
+    </p>
+    <p class="mt-2 font-mono text-[11px] text-dust-2">
+      共 <span class="text-amber">{allItems.length}</span> 条已登记记录
+    </p>
+  </header>
+
+  <SectionHeading title="登记清单" en="REGISTRY" icon="⌬" accent="#ffb020" id="registry">
+    {
+      allItems.length > 0 ? (
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {
+            allItems.map((item) => {
+              const d = item.data;
+              return (
+                <a
+                  href={url(`/items/${item.id}`)}
+                  class="panel corners hoverable group flex flex-col overflow-hidden p-5"
+                  style={`--accent:${d.accent}`}
+                >
+                  <div class="flex items-start gap-4">
+                    <div
+                      class="grid h-16 w-16 shrink-0 place-items-center rounded-lg border text-3xl"
+                      style={`border-color:${d.accent}40;color:${d.accent};background:radial-gradient(circle at 30% 20%, ${d.accent}22, transparent 70%), #0e0e18`}
+                    >
+                      {d.icon}
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                      <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <h3 class="text-lg font-bold leading-tight text-ink transition-colors group-hover:text-[var(--accent)]">
+                          {d.name}
+                        </h3>
+                        <span class="chip" style={`color:${d.accent};border-color:${d.accent}44`}>{d.type}</span>
+                      </div>
+                      {d.enName && <p class="mt-0.5 font-mono text-[10px] tracking-[0.2em] text-dust-2">{d.enName}</p>}
+                      <p class="mt-1.5 text-[13px] leading-snug text-dust">{d.owner ?? '持有者未登记'}</p>
+                    </div>
+                  </div>
+
+                  <p class="mt-4 line-clamp-3 text-[13.5px] leading-relaxed text-dust">{d.summary}</p>
+
+                  <div class="mt-4 flex flex-wrap items-center gap-1.5">
+                    {d.location && <span class="chip">{d.location}</span>}
+                    {d.tags.slice(0, 3).map((t) => <span class="chip">{t}</span>)}
+                  </div>
+
+                  <div class="mt-5 flex items-center justify-between border-t border-edge/70 pt-3">
+                    <span class="font-mono text-[10px] tracking-[0.18em] text-dust-2">
+                      {d.status ?? 'STATUS · UNKNOWN'}
+                    </span>
+                    <span
+                      class="font-mono text-[11px] text-dust-2 transition-all duration-300 group-hover:translate-x-1 group-hover:text-[var(--accent)]"
+                    >
+                      READ →
+                    </span>
+                  </div>
+                </a>
+              );
+            })
+          }
+        </div>
+      ) : (
+        <div class="panel px-5 py-10 text-center">
+          <p class="font-mono text-sm text-dust">NO RECORDS</p>
+          <p class="mt-2 text-[13.5px] text-dust-2">
+            还没有物品。在 <code class="text-neon">src/content/items/</code> 里新建一个 .md 文件即可。
+          </p>
+        </div>
+      )
+    }
+  </SectionHeading>
+</BaseLayout>

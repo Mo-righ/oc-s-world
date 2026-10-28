@@ -36,6 +36,13 @@ relations: |
     classDef sub fill:#12121d,stroke:#33334f,color:#c9cfe4
     class A main
     class B,C,U,G sub
+radar:
+  智慧: 72
+  能力: 88
+  身体素质: 55
+  污染抗性: 40
+  机动: 61
+  幸运: 35
 events:
   - time: 请填时间
     title: 请填这个角色的关键经历

@@ -3,7 +3,7 @@
  * 单独成文件，是为了让浏览器端逻辑不必引入 astro:content。
  */
 
-export type SearchKind = 'character' | 'faction' | 'location' | 'system' | 'event' | 'page';
+export type SearchKind = 'character' | 'faction' | 'location' | 'system' | 'event' | 'item' | 'page';
 
 export interface SearchItem {
   /** 词条名 */
@@ -32,7 +32,15 @@ export interface SearchItem {
   o: number;
 }
 
-export const KIND_ORDER: SearchKind[] = ['character', 'faction', 'location', 'system', 'event', 'page'];
+export const KIND_ORDER: SearchKind[] = [
+  'character',
+  'faction',
+  'location',
+  'system',
+  'event',
+  'item',
+  'page',
+];
 
 export const KIND_INFO: Record<SearchKind, { label: string; icon: string }> = {
   character: { label: '人物', icon: '◉' },
@@ -40,5 +48,6 @@ export const KIND_INFO: Record<SearchKind, { label: string; icon: string }> = {
   location: { label: '地点', icon: '◈' },
   system: { label: '体系', icon: '⚙' },
   event: { label: '事件', icon: '⌛' },
+  item: { label: '物品', icon: '⌬' },
   page: { label: '页面', icon: '▤' },
 };

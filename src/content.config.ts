@@ -13,6 +13,16 @@ const eventSchema = z.object({
   desc: z.string().optional(),
 });
 
+/** 人物六维雷达图：0-100；大于 100 显示 S+，顶点会画到外六边形之外 */
+const radarSchema = z.object({
+  智慧: z.number().min(0).default(0),
+  能力: z.number().min(0).default(0),
+  身体素质: z.number().min(0).default(0),
+  污染抗性: z.number().min(0).default(0),
+  机动: z.number().min(0).default(0),
+  幸运: z.number().min(0).default(0),
+});
+
 /** 人物 */
 const characters = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/characters' }),
@@ -30,7 +40,11 @@ const characters = defineCollection({
     /** 所属组织 id（对应 src/content/factions 下的文件名） */
     faction: z.string().optional(),
     factionLabel: z.string().optional(),
-    age: z.string().optional(),
+    /** 年龄：写数字（72）或文字（「不明」）都可以 */
+    age: z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((v) => (v === undefined ? undefined : String(v))),
     gender: z.string().optional(),
     status: z.string().optional(),
     /** emoji 头像或 public/ 下的图片路径 */
@@ -46,6 +60,8 @@ const characters = defineCollection({
     rivals: z.array(z.string()).default([]),
     /** Mermaid 关系图源码（graph / flowchart 均可） */
     relations: z.string().optional(),
+    /** 六维能力雷达图数据；不写时详情页显示未登记占位 */
+    radar: radarSchema.optional(),
     events: z.array(eventSchema).default([]),
     /** 关联地点 id */
     locations: z.array(z.string()).default([]),
@@ -164,6 +180,47 @@ const timeline = defineCollection({
   }),
 });
 
+/** 物品 / 装备 / 资料 */
+const items = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/items' }),
+  schema: z.object({
+    name: z.string(),
+    enName: z.string().optional(),
+    /** 更多可被检索与自动内链匹配的别名 */
+    aliases: z.array(z.string()).default([]),
+    /** 是否允许自动内链；false 时仍可用 [[词条]] 手动链接 */
+    autoLink: z.boolean().default(true),
+    /** 物品类别，例如「装备」「资料」「消耗品」 */
+    type: z.string().default('物品'),
+    icon: z.string().default('⌬'),
+    accent: z.string().default('#ffb020'),
+    /** 持有者 / 制造者，自由文本即可 */
+    owner: z.string().optional(),
+    /** 所在地 / 来源地，自由文本即可 */
+    location: z.string().optional(),
+    status: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    summary: z.string(),
+    /** 关键参数表：名称 -> 说明 */
+    specs: z
+      .array(
+        z.object({
+          key: z.string(),
+          value: z.string(),
+        })
+      )
+      .default([]),
+    /** 相关人物（写名字即可） */
+    relatedCharacters: z.array(z.string()).default([]),
+    /** 相关势力 / 组织（写名字即可） */
+    relatedFactions: z.array(z.string()).default([]),
+    events: z.array(eventSchema).default([]),
+    sample: z.boolean().default(false),
+    order: z.number().default(999),
+    featured: z.boolean().default(false),
+  }),
+});
+
 /** 单页文案（首页、人物关系总图等），同样走 Markdown */
 const pages = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/pages' }),
@@ -225,5 +282,6 @@ export const collections = {
   locations,
   lore,
   timeline,
+  items,
   pages,
 };

@@ -5,6 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
 import Mermaid from '../../components/Mermaid.astro';
 import Timeline from '../../components/Timeline.astro';
+import StatRadar from '../../components/StatRadar.astro';
 import { byOrder, url } from '../../lib/site';
 import WikiLinks from '../../components/WikiLinks.astro';
 
@@ -28,6 +29,8 @@ const metaRows = [
   { k: '状态', v: d.status },
   { k: '所属', v: faction?.data.name ?? d.factionLabel },
 ].filter((r) => Boolean(r.v));
+
+const hasRadar = Boolean(d.radar);
 ---
 
 <BaseLayout
@@ -119,6 +122,22 @@ const metaRows = [
       </dl>
     )
   }
+
+  <!-- ============ 六维能力雷达图 ============ -->
+  <SectionHeading
+    title="能力评级"
+    en="CAPACITY"
+    icon="⬢"
+    accent={d.accent}
+    id="capacity"
+    desc={
+      hasRadar
+        ? '六维数值仅以等级呈现：D / C / B / A / S / S+。超过 100 的维度会画到外六边形之外。'
+        : '尚未登记六维数据，当前按 0（D）占位显示。在 frontmatter 的 radar 字段里填写六项即可。'
+    }
+  >
+    <StatRadar stats={d.radar} accent={d.accent} />
+  </SectionHeading>
 
   <!-- ============ 正文 ============ -->
   <div class="prose-oc mt-10">

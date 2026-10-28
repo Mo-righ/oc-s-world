@@ -1,0 +1,106 @@
+{
+  "$ref": "#/definitions/factions",
+  "definitions": {
+    "factions": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "enName": {
+          "type": "string"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "autoLink": {
+          "type": "boolean",
+          "default": true
+        },
+        "type": {
+          "type": "string",
+          "default": "组织"
+        },
+        "motto": {
+          "type": "string"
+        },
+        "emblem": {
+          "type": "string",
+          "default": "◆"
+        },
+        "accent": {
+          "type": "string",
+          "default": "#ff2e97"
+        },
+        "founded": {
+          "type": "string"
+        },
+        "leader": {
+          "type": "string"
+        },
+        "headquarters": {
+          "type": "string"
+        },
+        "influence": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "summary": {
+          "type": "string"
+        },
+        "relations": {
+          "type": "string"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "desc": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "time",
+              "title"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "order": {
+          "type": "number",
+          "default": 999
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "summary"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

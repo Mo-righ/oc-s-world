@@ -8,7 +8,7 @@ import { getCollection } from 'astro:content';
 import { url } from '../lib/site';
 
 interface Props {
-  kind: 'character' | 'faction' | 'location' | 'system' | 'event';
+  kind: 'character' | 'faction' | 'location' | 'system' | 'event' | 'item';
   id: string;
   /** 需要排除的词条（比如本页已经单独展示过的名册成员） */
   exclude?: string[];
@@ -16,12 +16,13 @@ interface Props {
 
 const { kind, id, exclude = [] } = Astro.props;
 
-const [characters, factions, locations, lore, timeline] = await Promise.all([
+const [characters, factions, locations, lore, timeline, items] = await Promise.all([
   getCollection('characters'),
   getCollection('factions'),
   getCollection('locations'),
   getCollection('lore'),
   getCollection('timeline'),
+  getCollection('items'),
 ]);
 
 interface Row {
@@ -68,6 +69,7 @@ add(factions, 'faction', '势力', '◆', (i) => `/factions/${i}`, (d) => d.name
 add(locations, 'location', '地点', '◈', (i) => `/settings/locations/${i}`, (d) => d.name, (d) => d.enName, (d) => d.aliases, (d) => d.accent);
 add(lore, 'system', '体系', '⚙', (i) => `/settings/systems/${i}`, (d) => d.name, (d) => d.enName, (d) => d.aliases, (d) => d.accent);
 add(timeline, 'event', '事件', '⌛', () => '/settings#history', (d) => d.title, (d) => d.date, (d) => d.aliases, (d) => d.accent);
+add(items, 'item', '物品', '⌬', (i) => `/items/${i}`, (d) => d.name, (d) => d.enName, (d) => d.aliases, (d) => d.accent);
 
 const escapeRe = (s: string) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

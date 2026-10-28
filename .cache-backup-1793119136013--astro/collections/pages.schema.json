@@ -1,0 +1,147 @@
+{
+  "$ref": "#/definitions/pages",
+  "definitions": {
+    "pages": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "kicker": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "accent": {
+          "type": "string",
+          "default": "#00e5ff"
+        },
+        "stats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "desc": {
+                "type": "string"
+              },
+              "href": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string",
+                "default": "▸"
+              }
+            },
+            "required": [
+              "title",
+              "desc",
+              "href"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "graph": {
+          "type": "string"
+        },
+        "motto": {
+          "type": "string"
+        },
+        "terminal": {
+          "type": "object",
+          "properties": {
+            "mark": {
+              "type": "string",
+              "default": "GLIMMER // INTERNAL DATABASE"
+            },
+            "node": {
+              "type": "string",
+              "default": "NODE-07"
+            },
+            "accessCode": {
+              "type": "string",
+              "default": "GL-0000"
+            },
+            "statusLine": {
+              "type": "string",
+              "default": "LINK STABLE"
+            },
+            "prompt": {
+              "type": "string",
+              "default": "按任意键进行身份认证"
+            },
+            "touchPrompt": {
+              "type": "string",
+              "default": "轻触屏幕任意位置以继续"
+            },
+            "operator": {
+              "type": "string",
+              "default": "STARRY"
+            },
+            "role": {
+              "type": "string",
+              "default": "创始人 · 创始序列 01"
+            },
+            "clearance": {
+              "type": "string",
+              "default": "全库读写"
+            },
+            "bootLines": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "footnotes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
+          },
+          "additionalProperties": false
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

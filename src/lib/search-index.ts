@@ -36,13 +36,14 @@ const PAGE_ROUTES: Record<string, { href: string; order: number }> = {
 
 /** 构建索引：人物 / 势力 / 地点 / 体系 / 事件 / 单页文案 */
 export async function buildSearchIndex(): Promise<SearchItem[]> {
-  const [characters, factions, locations, lore, timeline, pages] = await Promise.all([
+  const [characters, factions, locations, lore, timeline, pages, itemDocs] = await Promise.all([
     getCollection('characters'),
     getCollection('factions'),
     getCollection('locations'),
     getCollection('lore'),
     getCollection('timeline'),
     getCollection('pages'),
+    getCollection('items'),
   ]);
 
   const items: SearchItem[] = [
@@ -115,6 +116,20 @@ export async function buildSearchIndex(): Promise<SearchItem[]> {
       x: stripMarkdown(t.body ?? '').slice(0, 420),
       c: t.data.accent,
       o: t.data.order,
+    })),
+    ...itemDocs.map((it) => ({
+      t: it.data.name,
+      k: 'item' as const,
+      kl: KIND_INFO.item.label,
+      ki: KIND_INFO.item.icon,
+      u: url(`/items/${it.id}`),
+      e: it.data.enName ?? '',
+      a: [it.data.type, it.data.owner, ...it.data.aliases].filter(Boolean).join(' · '),
+      s: it.data.summary,
+      g: it.data.tags,
+      x: stripMarkdown(it.body ?? '').slice(0, 420),
+      c: it.data.accent,
+      o: it.data.order,
     })),
     ...pages.flatMap((p) => {
       const route = PAGE_ROUTES[p.id];
