@@ -16,6 +16,7 @@ const factions = (await getCollection('factions')).sort(byOrder);
 const locations = (await getCollection('locations')).sort(byOrder);
 const lore = (await getCollection('lore')).sort(byOrder);
 const events = (await getCollection('timeline')).sort(byOrder);
+const items = (await getCollection('items')).sort(byOrder);
 
 /** 系统读数：全部由内容集合实时统计，加一条档案这里就 +1 */
 const readouts = [
@@ -23,6 +24,7 @@ const readouts = [
   { label: '势力节点', code: 'FACTIONS', value: factions.length },
   { label: '地理节点', code: 'GEO', value: locations.length },
   { label: '编年史', code: 'CHRONICLE', value: events.length },
+  { label: '物品条目', code: 'ITEMS', value: items.length },
 ];
 
 const sections = d.sections ?? [];
@@ -127,7 +129,7 @@ const topFactions = factions.slice(0, 7);
 
   <!-- ==================== 系统读数 ==================== -->
   <section class="mx-auto w-full max-w-6xl px-5 sm:px-8">
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {
         readouts.map((r) => (
           <div class="readout" style={`--accent:${d.accent}`}>
@@ -155,7 +157,7 @@ const topFactions = factions.slice(0, 7);
       <div class="term-bar">
         <span class="led"></span>
         <span class="text-dust">ARCHIVE INDEX</span>
-        <span class="ml-auto">3 CHANNELS</span>
+        <span class="ml-auto">{sections.length} CHANNELS</span>
       </div>
       <div class="p-1.5">
         {

@@ -123,17 +123,17 @@ const hasRadar = Boolean(d.radar);
     )
   }
 
-  <!-- ============ 六维能力雷达图 ============ -->
+  <!-- ============ 六维雷达图 ============ -->
   <SectionHeading
-    title="能力评级"
-    en="CAPACITY"
+    title="六维评级"
+    en="RATING"
     icon="⬢"
     accent={d.accent}
-    id="capacity"
+    id="radar"
     desc={
       hasRadar
         ? '六维数值仅以等级呈现：D / C / B / A / S / S+。超过 100 的维度会画到外六边形之外。'
-        : '尚未登记六维数据，当前按 0（D）占位显示。在 frontmatter 的 radar 字段里填写六项即可。'
+        : '尚未登记六维数据，六项均显示为「—」占位。在 frontmatter 的 radar 字段里填写六项即可。'
     }
   >
     <StatRadar stats={d.radar} accent={d.accent} />

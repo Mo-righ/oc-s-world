@@ -38,7 +38,7 @@ relations: |
     class A,C,G,U sub
 radar:
   智慧: 45
-  能力: 30
+  异能: 30
   身体素质: 78
   污染抗性: 105
   机动: 52
